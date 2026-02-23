@@ -13,7 +13,7 @@ Comparación con Sprint Goal:
 | T1 | Sí | Sin problemas |
 | T2 | Sí | Sin problemas |
 | T3 | No | Sin empezar |
-| T4 | No | Sin empezar |
+| T4.1 | Sí | Problemas en el recorte de la splash screen |
 ---
 
 ## 3. Desviaciones
