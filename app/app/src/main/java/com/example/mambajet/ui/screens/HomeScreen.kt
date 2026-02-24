@@ -2,9 +2,10 @@ package com.izanjaen.mambajet.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed // Cambiado para identificar el primero
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -30,17 +31,13 @@ val mockTrips = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(onTripClick: (String) -> Unit, onAddTripClick: () -> Unit) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                DrawerContent()
-            }
-        }
+        drawerContent = { ModalDrawerSheet { DrawerContent() } }
     ) {
         Scaffold(
             containerColor = Color.White,
@@ -54,10 +51,7 @@ fun HomeScreen() {
                             contentScale = ContentScale.Fit
                         )
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.White,
-                        scrolledContainerColor = Color.White
-                    ),
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White),
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Menú")
@@ -77,25 +71,25 @@ fun HomeScreen() {
                 ) {
                     FloatingActionButton(
                         containerColor = MaterialTheme.colorScheme.primary,
-                        onClick = { /* Acción */ }
+                        onClick = onAddTripClick
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Nuevo", tint = Color.White)
                     }
                 }
             }
         ) { paddingValues ->
-            MainContent(paddingValues)
+            MainContent(paddingValues, onTripClick)
         }
     }
 }
 
 @Composable
-fun MainContent(paddingValues: PaddingValues) {
+fun MainContent(paddingValues: PaddingValues, onTripClick: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color.White)
     ) {
         Text(
             text = "Tus Próximos Viajes",
@@ -105,18 +99,42 @@ fun MainContent(paddingValues: PaddingValues) {
         )
 
         LazyColumn {
-            items(mockTrips) { viaje ->
+            // Cambiamos a itemsIndexed para detectar el primer elemento
+            itemsIndexed(mockTrips) { index, viaje ->
+                val isFirst = index == 0
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        // Si es el primero, lo hacemos un poco más alto
+                        .height(if (isFirst) 130.dp else 90.dp)
+                        .clickable { onTripClick(viaje.destination) },
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
+                        // Si es el primero, usamos un verde muy ligero (E8F5E9)
+                        containerColor = if (isFirst) Color(0xFFE8F5E9) else Color(0xFFF1F1F1)
+                    ),
+                    // Añadimos un poco más de elevación al primero para que resalte
+                    elevation = CardDefaults.cardElevation(if (isFirst) 4.dp else 1.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = viaje.destination, fontWeight = FontWeight.Bold)
-                        Text(text = viaje.date, style = MaterialTheme.typography.bodyMedium)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = viaje.destination,
+                            fontWeight = FontWeight.Bold,
+                            // Si es el primero, el texto es un poco más grande
+                            style = if (isFirst) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = viaje.date,
+                            style = MaterialTheme.typography.bodyMedium,
+                            // Si es el primero, le damos un tono verde oscuro al texto de la fecha
+                            color = if (isFirst) Color(0xFF2E7D32) else Color.DarkGray
+                        )
                     }
                 }
             }
@@ -126,16 +144,9 @@ fun MainContent(paddingValues: PaddingValues) {
 
 @Composable
 fun DrawerContent() {
-    Column(
-        modifier = Modifier.fillMaxHeight().padding(16.dp)
-    ) {
+    Column(modifier = Modifier.fillMaxHeight().padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                Icons.Default.AccountCircle,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
+            Icon(Icons.Default.AccountCircle, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(text = "Izan Jaén", style = MaterialTheme.typography.titleMedium)
@@ -169,4 +180,3 @@ fun DrawerContent() {
         )
     }
 }
-
