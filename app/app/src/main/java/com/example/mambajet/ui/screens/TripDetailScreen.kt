@@ -24,13 +24,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mambajet.R
 
-// --- 1. DEFINICIÓN DE MODELOS Y DATOS (ESTO EVITA EL "UNRESOLVED REFERENCE") ---
-
+// --- DATOS ---
 data class ItineraryActivity(
     val time: String,
     val title: String,
     val description: String,
-    val icon: ImageVector
+    val icon: ImageVector,
+    val cost: Double
 )
 
 data class DayGroup(
@@ -40,19 +40,18 @@ data class DayGroup(
 
 val mockItineraryData = listOf(
     DayGroup("viernes, 15 may", listOf(
-        ItineraryActivity("10:06", "Vuelo MJ-200", "Iberia - Terminal 3", Icons.Default.Flight),
-        ItineraryActivity("15:00", "Hotel Imperial", "Check in: 15:00 JST\nTokyo, Shinjuku...", Icons.Default.Hotel),
+        ItineraryActivity("10:06", "Vuelo MJ-200", "Iberia - Terminal 3", Icons.Default.Flight, 450.0),
+        ItineraryActivity("15:00", "Hotel Imperial", "Check in: 15:00 JST\nTokyo, Shinjuku...", Icons.Default.Hotel, 850.0),
     )),
     DayGroup("sábado, 16 may", listOf(
-        ItineraryActivity("11:00", "Mamba City Tour", "Exploración de Shibuya", Icons.Default.DirectionsWalk)
+        ItineraryActivity("11:00", "Mamba City Tour", "Exploración de Shibuya", Icons.Default.DirectionsWalk, 45.0)
     ))
 )
 
-// --- 2. PANTALLA DE DETALLE ---
-
+// --- PANTALLA DE DETALLE ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TripDetailScreen(destination: String, onBack: () -> Unit) {
+fun TripDetailScreen(destination: String, onBack: () -> Unit, onAddActivityClick: () -> Unit, onGalleryClick: () -> Unit) {
     val mambaNeon = Color(0xFF2DB300)
 
     Scaffold(
@@ -68,29 +67,43 @@ fun TripDetailScreen(destination: String, onBack: () -> Unit) {
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
         },
-        floatingActionButton = {
-            Column(horizontalAlignment = Alignment.End) {
-                // Botón de Mapa Cuadrado
-                SmallFloatingActionButton(
-                    onClick = { /* Abrir Mapa, falta añadir */ },
-                    containerColor = Color.White,
-                    contentColor = mambaNeon,
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.border(1.dp, mambaNeon.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+        // --- BARRA INFERIOR SIMÉTRICA (Galería - Añadir - Mapa) ---
+        bottomBar = {
+            Surface(
+                color = Color.White,
+                shadowElevation = 16.dp,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Map, contentDescription = "Mapa")
-                }
+                    // Izquierda: Galería
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        BottomActionIcon(icon = Icons.Default.PhotoLibrary, label = "Galería") {onGalleryClick() }
+                    }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    // Centro: Añadir Actividad (Igual al de la HomeScreen)
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        FloatingActionButton(
+                            onClick = onAddActivityClick,
+                            containerColor = mambaNeon,
+                            contentColor = Color.White,
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = FloatingActionButtonDefaults.elevation(0.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Añadir", modifier = Modifier.size(28.dp))
+                        }
+                    }
 
-                // Botón Añadir Cuadrado
-                FloatingActionButton(
-                    onClick = { /* Añadir Actividad, falta añadir */ },
-                    containerColor = mambaNeon,
-                    contentColor = Color.White,
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Añadir")
+                    // Derecha: Mapa
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        BottomActionIcon(icon = Icons.Default.Map, label = "Mapa") { /* Abrir Mapa */ }
+                    }
                 }
             }
         }
@@ -132,7 +145,33 @@ fun TripDetailScreen(destination: String, onBack: () -> Unit) {
                 }
             }
 
+            // --- TARJETA DE RESUMEN FINANCIERO (VERDE MAMBA) ---
+            item {
+                val totalCost = mockItineraryData.flatMap { it.activities }.sumOf { it.cost }
+                val totalActivities = mockItineraryData.flatMap { it.activities }.size
 
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                    colors = CardDefaults.cardColors(containerColor = mambaNeon),
+                    shape = RoundedCornerShape(20.dp),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(20.dp).fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("GASTO ACTUAL", color = Color.White.copy(alpha = 0.8f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                            Text("${totalCost.toInt()}€", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text("ACTIVIDADES", color = Color.White.copy(alpha = 0.8f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                            Text("$totalActivities", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                        }
+                    }
+                }
+            }
 
             // Itinerario Dinámico
             mockItineraryData.forEach { dayGroup ->
@@ -142,7 +181,7 @@ fun TripDetailScreen(destination: String, onBack: () -> Unit) {
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Gray,
-                        modifier = Modifier.padding(top = 16.dp, bottom = 12.dp)
+                        modifier = Modifier.padding(bottom = 12.dp)
                     )
                 }
                 items(dayGroup.activities) { activity ->
@@ -150,11 +189,25 @@ fun TripDetailScreen(destination: String, onBack: () -> Unit) {
                 }
             }
 
-            item { Spacer(modifier = Modifier.height(100.dp)) }
+            item { Spacer(modifier = Modifier.height(30.dp)) }
         }
     }
 }
 
+// COMPONENTE PARA LOS ICONOS DE LA BARRA INFERIOR
+@Composable
+fun BottomActionIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable { onClick() }.padding(8.dp)
+    ) {
+        Icon(icon, contentDescription = label, tint = Color.Gray, modifier = Modifier.size(28.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(label, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+    }
+}
+
+// LÍNEA DEL TIEMPO
 @Composable
 fun FuturisticTimelineItem(activity: ItineraryActivity, color: Color) {
     Row(
@@ -221,12 +274,19 @@ fun FuturisticTimelineItem(activity: ItineraryActivity, color: Color) {
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(activity.title, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     if (activity.description.isNotEmpty()) {
                         Text(activity.description, fontSize = 12.sp, color = Color.Gray)
                     }
                 }
+
+                Text(
+                    text = "${activity.cost.toInt()}€",
+                    fontWeight = FontWeight.Black,
+                    color = Color.Black,
+                    fontSize = 14.sp
+                )
             }
         }
     }

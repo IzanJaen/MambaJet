@@ -3,6 +3,7 @@ package com.example.mambajet.ui.screens
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -10,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
@@ -23,6 +25,7 @@ fun AddTripScreen(onBack: () -> Unit) {
     // --- ESTADOS DEL FORMULARIO ---
     var tripName by remember { mutableStateOf("") }
     var destination by remember { mutableStateOf("") }
+    var estimatedBudget by remember { mutableStateOf("") } // NUEVO: Presupuesto
     var startDate by remember { mutableStateOf("") }
     var endDate by remember { mutableStateOf("") }
 
@@ -96,7 +99,18 @@ fun AddTripScreen(onBack: () -> Unit) {
                 }
             }
 
-            // 3. Campo Fecha Inicio
+            // --- NUEVO: 3. Campo Presupuesto Estimado ---
+            OutlinedTextField(
+                value = estimatedBudget,
+                onValueChange = { estimatedBudget = it },
+                label = { Text("Presupuesto Estimado (€)") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                leadingIcon = { Icon(Icons.Default.AccountBalanceWallet, null, tint = mambaNeon) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number) // Solo números
+            )
+
+            // 4. Campo Fecha Inicio
             ClickableDateField(
                 label = "Fecha de Inicio",
                 value = startDate,
@@ -105,7 +119,7 @@ fun AddTripScreen(onBack: () -> Unit) {
                 onClick = { showStartDatePicker = true }
             )
 
-            // 4. Campo Fecha Final
+            // 5. Campo Fecha Final
             ClickableDateField(
                 label = "Fecha Final",
                 value = endDate,
@@ -122,10 +136,9 @@ fun AddTripScreen(onBack: () -> Unit) {
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = mambaNeon),
                 enabled = tripName.isNotEmpty() && destination.isNotEmpty() &&
-                        startDate.isNotEmpty() &&
-                        endDate.isNotEmpty()
+                        startDate.isNotEmpty() && endDate.isNotEmpty() && estimatedBudget.isNotEmpty()
             ) {
-                Text("CONFIRMAR DESTINO", fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                Text("CONFIRMAR VIAJE", fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
             }
         }
     }
@@ -146,8 +159,7 @@ fun AddTripScreen(onBack: () -> Unit) {
     }
 }
 
-// para que el calendario salga dandole a  t odo el click no solo al icono
-
+// Para que el calendario salga dándole a todo el click no solo al icono
 @Composable
 fun ClickableDateField(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color, onClick: () -> Unit) {
     Box(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
@@ -163,13 +175,14 @@ fun ClickableDateField(label: String, value: String, icon: androidx.compose.ui.g
             colors = OutlinedTextFieldDefaults.colors(
                 disabledTextColor = Color.Black,
                 disabledBorderColor = Color.Gray,
-                disabledLabelColor = Color.Gray
+                disabledLabelColor = Color.Gray,
+                disabledLeadingIconColor = color
             )
         )
     }
 }
 
-//Calendario
+// Calendario
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MambaDatePicker(onDateSelected: (String) -> Unit, onDismiss: () -> Unit) {
