@@ -36,7 +36,7 @@ val mockTrips = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 // --- AQUÍ AÑADIMOS onTermsClick ---
-fun HomeScreen(onTripClick: (String) -> Unit, onAddTripClick: () -> Unit, onGalleryClick: () -> Unit, onTermsClick: () -> Unit, onAboutClick: () -> Unit) {
+fun HomeScreen(onTripClick: (String) -> Unit, onAddTripClick: () -> Unit, onGalleryClick: () -> Unit, onTermsClick: () -> Unit, onAboutClick: () -> Unit, onSettingsClick: () -> Unit, onAppSettingsClick: () -> Unit) {
     val mambaNeon = Color(0xFF2DB300)
     var showProfileSheet by remember { mutableStateOf(false) }
 
@@ -108,7 +108,12 @@ fun HomeScreen(onTripClick: (String) -> Unit, onAddTripClick: () -> Unit, onGall
                     onAboutClick = {
                         showProfileSheet = false
                         onAboutClick()
-                    }
+                    },
+                    onSettingsClick = { // <--- NUEVO
+                        showProfileSheet = false
+                        onSettingsClick()
+                    },
+                    onAppSettingsClick = { showProfileSheet = false; onAppSettingsClick()}
                 )
             }
         }
@@ -236,7 +241,13 @@ fun HomeBottomActionIcon(icon: ImageVector, label: String, onClick: () -> Unit) 
 
 
 @Composable
-fun ProfileSheetContent(color: Color, onTermsClick: () -> Unit, onAboutClick: () -> Unit) {
+fun ProfileSheetContent(
+    color: Color,
+    onTermsClick: () -> Unit,
+    onAboutClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onAppSettingsClick: () -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp).padding(bottom = 32.dp)
     ) {
@@ -251,13 +262,12 @@ fun ProfileSheetContent(color: Color, onTermsClick: () -> Unit, onAboutClick: ()
 
         HorizontalDivider(color = Color.LightGray.copy(alpha = 0.3f), modifier = Modifier.padding(bottom = 16.dp))
 
-        ProfileMenuItem(icon = Icons.Default.Settings, text = "Ajustes de Usuario", color = color) {}
+        ProfileMenuItem(icon = Icons.Default.Settings, text = "Ajustes de Usuario", color = color, onClick = onSettingsClick)
 
-        // --- AQUÍ CONECTAMOS EL CLICK DE ABOUT US ---
         ProfileMenuItem(icon = Icons.Default.People, text = "Sobre Nosotros", color = color, onClick = onAboutClick)
 
         ProfileMenuItem(icon = Icons.Default.AssignmentTurnedIn, text = "Términos y Condiciones", color = color, onClick = onTermsClick)
-        ProfileMenuItem(icon = Icons.Default.Build, text = "Ajustes de App", color = color) {}
+        ProfileMenuItem(icon = Icons.Default.Build, text = "Ajustes de App", color = color, onClick = onAppSettingsClick)
     }
 }
 

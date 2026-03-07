@@ -74,7 +74,7 @@ fun AboutUsScreen(onBack: () -> Unit) {
                 modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
             ) {
                 Text(
-                    text = "Versión 0.4.0",
+                    text = "Versión 1.0.0",
                     color = mambaNeon,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp,
