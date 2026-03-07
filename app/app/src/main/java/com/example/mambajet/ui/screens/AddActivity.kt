@@ -2,18 +2,24 @@ package com.example.mambajet.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+// IMPORTANTE: Asegúrate de importar el PlanType de tu modelo de dominio
+import com.example.mambajet.domain.PlanType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,14 +28,26 @@ fun AddActivityScreen(onBack: () -> Unit) {
 
     // --- ESTADOS ---
     var title by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf("") } // NUEVO: Fecha
+    var date by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
-    var cost by remember { mutableStateOf("") } // NUEVO: Coste
+    var cost by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+
+    // NUEVO: Estado para el tipo de actividad (por defecto EXPLORATION)
+    var selectedType by remember { mutableStateOf(PlanType.EXPLORATION) }
 
     // Control de diálogos
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+
+    // NUEVO: Mapa de iconos para la UI de selección
+    val planIcons = mapOf(
+        PlanType.FLIGHT to Icons.Default.Flight,
+        PlanType.HOTEL to Icons.Default.Hotel,
+        PlanType.RESTAURANT to Icons.Default.Restaurant,
+        PlanType.TRANSPORT to Icons.Default.DirectionsCar,
+        PlanType.EXPLORATION to Icons.Default.Explore
+    )
 
     Scaffold(
         containerColor = Color.White,
@@ -51,6 +69,41 @@ fun AddActivityScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text("Detalles del Plan", fontWeight = FontWeight.Black, fontSize = 28.sp)
+
+            // --- NUEVO: SELECTOR DE TIPO DE ACTIVIDAD ---
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Categoría", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(PlanType.values()) { type ->
+                        val isSelected = selectedType == type
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isSelected) mambaNeon else Color(0xFFF8F9FA), // Gris claro si no está seleccionado
+                            modifier = Modifier.clickable { selectedType = type }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = planIcons[type] ?: Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = if (isSelected) Color.White else Color.DarkGray,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = type.name,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSelected) Color.White else Color.DarkGray
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            // ---------------------------------------------
 
             // 1. Título
             OutlinedTextField(
@@ -76,7 +129,7 @@ fun AddActivityScreen(onBack: () -> Unit) {
 
                 // 3. Hora (Mitad de la pantalla)
                 Box(modifier = Modifier.weight(1f)) {
-                    ClickableDateField( // Reutilizamos tu función ClickableDateField para la hora también
+                    ClickableDateField(
                         label = "Hora",
                         value = time,
                         icon = Icons.Default.AccessTime,
@@ -110,7 +163,7 @@ fun AddActivityScreen(onBack: () -> Unit) {
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = { onBack() },
+                onClick = { onBack() }, // @TODO: Guardar selectedType junto con el resto de datos
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = mambaNeon),
@@ -123,7 +176,7 @@ fun AddActivityScreen(onBack: () -> Unit) {
 
     // --- DIÁLOGOS ---
     if (showDatePicker) {
-        MambaDatePicker( // Reutiliza el de AddTripScreen
+        MambaDatePicker(
             onDateSelected = { date = it },
             onDismiss = { showDatePicker = false }
         )

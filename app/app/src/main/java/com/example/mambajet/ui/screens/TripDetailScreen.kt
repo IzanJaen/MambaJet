@@ -9,7 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,8 +51,21 @@ val mockItineraryData = listOf(
 // --- PANTALLA DE DETALLE ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TripDetailScreen(destination: String, onBack: () -> Unit, onAddActivityClick: () -> Unit, onGalleryClick: () -> Unit) {
+fun TripDetailScreen(
+    destination: String,
+    onBack: () -> Unit,
+    onAddActivityClick: () -> Unit,
+    onGalleryClick: () -> Unit,
+    onMapClick: () -> Unit, // <--- NUEVO: Para navegar al mapa
+    onAIClick: () -> Unit   // <--- NUEVO: Para navegar a la IA
+) {
     val mambaNeon = Color(0xFF2DB300)
+    val dangerRed = Color(0xFFFF3B30)
+    val aiAccent = Color(0xFFAF4B7C) // Color de la IA
+
+    // Estados para los menús y diálogos
+    var showMenu by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = Color.White,
@@ -62,6 +75,31 @@ fun TripDetailScreen(destination: String, onBack: () -> Unit, onAddActivityClick
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", modifier = Modifier.size(20.dp))
+                    }
+                },
+                actions = {
+                    // --- MENÚ DE OPCIONES (Para esconder Eliminar Viaje) ---
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "Opciones")
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                        modifier = Modifier.background(Color.White)
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Ajustes del Viaje", color = Color.Black) },
+                            onClick = { showMenu = false },
+                            leadingIcon = { Icon(Icons.Default.Settings, null, tint = Color.Gray) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Eliminar Misión", color = dangerRed, fontWeight = FontWeight.Bold) },
+                            onClick = {
+                                showMenu = false
+                                showDeleteDialog = true
+                            },
+                            leadingIcon = { Icon(Icons.Default.DeleteForever, null, tint = dangerRed) }
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
@@ -84,10 +122,10 @@ fun TripDetailScreen(destination: String, onBack: () -> Unit, onAddActivityClick
                 ) {
                     // Izquierda: Galería
                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        BottomActionIcon(icon = Icons.Default.PhotoLibrary, label = "Galería") {onGalleryClick() }
+                        BottomActionIcon(icon = Icons.Default.PhotoLibrary, label = "Galería") { onGalleryClick() }
                     }
 
-                    // Centro: Añadir Actividad (Igual al de la HomeScreen)
+                    // Centro: Añadir Actividad
                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                         FloatingActionButton(
                             onClick = onAddActivityClick,
@@ -100,9 +138,9 @@ fun TripDetailScreen(destination: String, onBack: () -> Unit, onAddActivityClick
                         }
                     }
 
-                    // Derecha: Mapa
+                    // Derecha: Mapa (Ahora conectado)
                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        BottomActionIcon(icon = Icons.Default.Map, label = "Mapa") { /* Abrir Mapa */ }
+                        BottomActionIcon(icon = Icons.Default.Map, label = "Mapa") { onMapClick() }
                     }
                 }
             }
@@ -133,7 +171,7 @@ fun TripDetailScreen(destination: String, onBack: () -> Unit, onAddActivityClick
                         )
                     }
                     Image(
-                        painter = painterResource(id = R.drawable.tokio_test),
+                        painter = painterResource(id = R.drawable.tokio_test), // Asegúrate de tener esta imagen o cámbiala
                         contentDescription = null,
                         modifier = Modifier
                             .size(100.dp)
@@ -151,7 +189,7 @@ fun TripDetailScreen(destination: String, onBack: () -> Unit, onAddActivityClick
                 val totalActivities = mockItineraryData.flatMap { it.activities }.size
 
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                     colors = CardDefaults.cardColors(containerColor = mambaNeon),
                     shape = RoundedCornerShape(20.dp),
                     elevation = CardDefaults.cardElevation(4.dp)
@@ -173,6 +211,33 @@ fun TripDetailScreen(destination: String, onBack: () -> Unit, onAddActivityClick
                 }
             }
 
+            // --- BOTÓN DE MAMBA IA ---
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp)
+                        .clickable { onAIClick() },
+                    colors = CardDefaults.cardColors(containerColor = aiAccent.copy(alpha = 0.1f)),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(0.dp),
+                    border = BorderStroke(1.dp, aiAccent.copy(alpha = 0.3f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = aiAccent, modifier = Modifier.size(28.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Mamba Intelligence", fontWeight = FontWeight.Bold, color = aiAccent, fontSize = 14.sp)
+                            Text("Optimiza gastos y sugiere rutas", fontSize = 12.sp, color = Color.DarkGray)
+                        }
+                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = aiAccent)
+                    }
+                }
+            }
+
             // Itinerario Dinámico
             mockItineraryData.forEach { dayGroup ->
                 item {
@@ -189,7 +254,27 @@ fun TripDetailScreen(destination: String, onBack: () -> Unit, onAddActivityClick
                 }
             }
 
-            item { Spacer(modifier = Modifier.height(30.dp)) }
+            item { Spacer(modifier = Modifier.height(100.dp)) } // Espacio extra para que la barra inferior no tape
+        }
+
+        // --- DIÁLOGO DE CONFIRMACIÓN DE BORRADO ---
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Abortar Misión", fontWeight = FontWeight.Bold) },
+                text = { Text("¿Estás seguro de que quieres eliminar este viaje? Esta acción destruirá todas las capturas y waypoints asociados y no se puede deshacer.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showDeleteDialog = false
+                        // @TODO Llamar a Trip.deleteTrip()
+                        onBack()
+                    }) { Text("DESTRUIR", color = dangerRed, fontWeight = FontWeight.Bold) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) { Text("CANCELAR", color = Color.Gray) }
+                },
+                containerColor = Color.White
+            )
         }
     }
 }
@@ -221,7 +306,8 @@ fun FuturisticTimelineItem(activity: ItineraryActivity, color: Color) {
             modifier = Modifier.width(45.dp).padding(top = 2.dp),
             fontWeight = FontWeight.Bold,
             fontSize = 13.sp,
-            fontFamily = FontFamily.Monospace
+            fontFamily = FontFamily.Monospace,
+            color = Color.Black
         )
 
         // Línea Jet Stream
@@ -275,7 +361,7 @@ fun FuturisticTimelineItem(activity: ItineraryActivity, color: Color) {
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(activity.title, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text(activity.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.Black)
                     if (activity.description.isNotEmpty()) {
                         Text(activity.description, fontSize = 12.sp, color = Color.Gray)
                     }
