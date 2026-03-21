@@ -1,15 +1,16 @@
-package com.example.mambajet.domain
+    package com.example.mambajet.domain
 
 import java.util.Date
 
 data class Trip(
-    val id: String,
-    val userId: String,
-    val destination: String,
-    val startDate: Date,
-    val endDate: Date,
-    val totalBudget: Double,
-    val spentBudget: Double
+    val id: String = java.util.UUID.randomUUID().toString(),
+    val userId: String = "mamba_elite_user",
+    var title: String,          // Requerido: En lugar de destination
+    var startDate: String,      // Requerido: Formato dd/MM/YYYY
+    var endDate: String,        // Requerido: Formato dd/MM/YYYY
+    var description: String,    // Requerido: Nueva variable
+    var totalBudget: Double = 0.0,
+    var spentBudget: Double = 0.0
 ) {
     fun createTrip() {
         // @TODO Implement trip creation logic and save to DB

@@ -22,23 +22,27 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
 import com.example.mambajet.R
-
-data class Trip(val destination: String, val date: String, val totalBudget: Double, val spentBudget: Double, val icon: ImageVector)
-
-val mockTrips = listOf(
-    Trip("Tokio, Japón", "15 May - 20 May", 2500.0, 1200.0, Icons.Default.LocationCity),
-    Trip("París, Francia", "02 Jun - 05 Jun", 1200.0, 450.0, Icons.Default.AccountBalance),
-    Trip("Nueva York, USA", "10 Dic - 15 Dic", 3000.0, 150.0, Icons.Default.Business)
-)
+import com.example.mambajet.domain.Trip // Tu modelo real
+import com.example.mambajet.ui.viewmodels.TripListViewModel // El ViewModel que creamos
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-// --- AQUÍ AÑADIMOS onTermsClick ---
-fun HomeScreen(onTripClick: (String) -> Unit, onAddTripClick: () -> Unit, onGalleryClick: () -> Unit, onTermsClick: () -> Unit, onAboutClick: () -> Unit, onSettingsClick: () -> Unit, onAppSettingsClick: () -> Unit) {
+fun HomeScreen(
+    viewModel: TripListViewModel, // NUEVO: Pasamos el ViewModel
+    onTripClick: (String) -> Unit,
+    onAddTripClick: () -> Unit,
+    onGalleryClick: () -> Unit,
+    onTermsClick: () -> Unit,
+    onAboutClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onAppSettingsClick: () -> Unit
+) {
     val mambaNeon = Color(0xFF2DB300)
     var showProfileSheet by remember { mutableStateOf(false) }
+
+    // NUEVO: Observamos la lista de viajes real desde el ViewModel
+    val trips by viewModel.trips.collectAsState()
 
     Scaffold(
         containerColor = Color.White,
@@ -90,7 +94,8 @@ fun HomeScreen(onTripClick: (String) -> Unit, onAddTripClick: () -> Unit, onGall
             }
         }
     ) { paddingValues ->
-        MainContent(paddingValues, onTripClick)
+        // Pasamos los viajes reales a la vista principal
+        MainContent(paddingValues, trips, onTripClick)
 
         if (showProfileSheet) {
             ModalBottomSheet(
@@ -98,29 +103,20 @@ fun HomeScreen(onTripClick: (String) -> Unit, onAddTripClick: () -> Unit, onGall
                 containerColor = Color.White,
                 dragHandle = { BottomSheetDefaults.DragHandle(color = Color.LightGray) }
             ) {
-                // Pasamos la acción al componente
                 ProfileSheetContent(
                     color = mambaNeon,
-                    onTermsClick = {
-                        showProfileSheet = false
-                        onTermsClick()
-                    },
-                    onAboutClick = {
-                        showProfileSheet = false
-                        onAboutClick()
-                    },
-                    onSettingsClick = { // <--- NUEVO
-                        showProfileSheet = false
-                        onSettingsClick()
-                    },
+                    onTermsClick = { showProfileSheet = false; onTermsClick() },
+                    onAboutClick = { showProfileSheet = false; onAboutClick() },
+                    onSettingsClick = { showProfileSheet = false; onSettingsClick() },
                     onAppSettingsClick = { showProfileSheet = false; onAppSettingsClick()}
                 )
             }
         }
     }
 }
+
 @Composable
-fun MainContent(paddingValues: PaddingValues, onTripClick: (String) -> Unit) {
+fun MainContent(paddingValues: PaddingValues, trips: List<Trip>, onTripClick: (String) -> Unit) {
     val mambaNeon = Color(0xFF2DB300)
 
     Column(
@@ -139,7 +135,8 @@ fun MainContent(paddingValues: PaddingValues, onTripClick: (String) -> Unit) {
         LazyColumn(
             contentPadding = PaddingValues(bottom = 20.dp)
         ) {
-            itemsIndexed(mockTrips) { index, viaje ->
+            // Usamos la lista REAL que viene del ViewModel
+            itemsIndexed(trips) { index, viaje ->
                 val isFirst = index == 0
                 val progress = if (viaje.totalBudget > 0) (viaje.spentBudget / viaje.totalBudget).toFloat() else 0f
 
@@ -148,7 +145,7 @@ fun MainContent(paddingValues: PaddingValues, onTripClick: (String) -> Unit) {
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .height(if (isFirst) 140.dp else 120.dp)
-                        .clickable { onTripClick(viaje.destination) },
+                        .clickable { onTripClick(viaje.title) }, // Pasa el ID en lugar del título para no perder la referencia
                     colors = CardDefaults.cardColors(
                         containerColor = if (isFirst) Color(0xFFE8F5E9) else Color(0xFFF8F9FA)
                     ),
@@ -167,12 +164,12 @@ fun MainContent(paddingValues: PaddingValues, onTripClick: (String) -> Unit) {
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = viaje.destination,
+                                    text = viaje.title, // El título del viaje real
                                     fontWeight = FontWeight.Bold,
                                     style = if (isFirst) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium
                                 )
                                 Text(
-                                    text = viaje.date,
+                                    text = "${viaje.startDate} - ${viaje.endDate}", // Fechas reales concatenadas
                                     style = MaterialTheme.typography.bodySmall,
                                     color = if (isFirst) Color(0xFF2E7D32) else Color.DarkGray
                                 )
@@ -184,7 +181,7 @@ fun MainContent(paddingValues: PaddingValues, onTripClick: (String) -> Unit) {
                                 modifier = Modifier.size(40.dp)
                             ) {
                                 Icon(
-                                    imageVector = viaje.icon,
+                                    imageVector = Icons.Default.FlightTakeoff, // Icono genérico real
                                     contentDescription = null,
                                     tint = if (isFirst) mambaNeon else Color.Gray,
                                     modifier = Modifier.padding(8.dp)
@@ -239,7 +236,6 @@ fun HomeBottomActionIcon(icon: ImageVector, label: String, onClick: () -> Unit) 
     }
 }
 
-
 @Composable
 fun ProfileSheetContent(
     color: Color,
@@ -276,7 +272,7 @@ fun ProfileMenuItem(icon: ImageVector, text: String, color: Color, onClick: () -
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() } // Añadimos acción dinámica
+            .clickable { onClick() }
             .padding(vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
