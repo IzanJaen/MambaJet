@@ -80,4 +80,27 @@
     <string name="analyze">ANALYZE</string>
     <string name="suggestion_found">Suggestion Found</string>
     <string name="convert_waypoint">CONVERT TO WAYPOINT</string>
+    <string name="legal_uppercase">LEGAL</string>
+    <string name="terms_1_title">1. Acceptance of Service</string>
+    <string name="terms_1_body">By using MambaJet, you agree to abide by these terms...</string>
+    <string name="terms_2_title">2. Data Usage</string>
+    <string name="terms_2_body">Your travel data is saved locally for your privacy...</string>
+    <string name="terms_3_title">3. AI Recommendations</string>
+    <string name="terms_3_body">MambaJet is not responsible for the accuracy of the AI...</string>
+
+    <string name="about_us_uppercase">ABOUT US</string>
+    <string name="dev_team">MambaJet Dev Team</string>
+    <string name="version_text">Version 2.1.0 (InMemory Storage)</string>
+    <string name="about_us_desc">MambaJet was born from the need to simplify group travel planning, integrating smart recommendations and intuitive budget tracking. Developed with passion using Jetpack Compose.</string>
+
+    <string name="optimization_for">Optimization for %1$s</string>
+    <string name="ask_suggestions">Ask for suggestions or analyze your remaining budget.</string>
+    <string name="ai_example_result">Ichiran Ramen in Shibuya. Estimated cost: €12. Fits perfectly into your daily budget of €45.</string>
+
+    <string name="radar_title">RADAR: %1$s</string>
+    <string name="radar_module">Radar Module</string>
+
+    <string name="mission_captures">Mission Captures</string>
+    <string name="captures_count">%1$d CAPTURES</string>
+    <string name="select_trip">Select a trip</string>
 </resources>

@@ -16,9 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.mambajet.R
 
 data class GalleryImage(val color: Color, val icon: ImageVector, val title: String)
 data class TripGallery(val tripName: String, val images: List<GalleryImage>)
@@ -38,10 +40,10 @@ fun GalleryScreen(tripDestination: String? = null, onBack: () -> Unit) {
     val dataToShow = if (tripDestination.isNullOrBlank()) mockGalleryData else mockGalleryData.filter { it.tripName == tripDestination }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background, // DINÁMICO
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("MEMORIES", letterSpacing = 4.sp, fontWeight = FontWeight.Light, fontSize = 12.sp) },
+                title = { Text(stringResource(R.string.memories), letterSpacing = 4.sp, fontWeight = FontWeight.Light, fontSize = 12.sp) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", modifier = Modifier.size(20.dp)) } },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
@@ -59,8 +61,8 @@ fun GalleryScreen(tripDestination: String? = null, onBack: () -> Unit) {
         LazyColumn(modifier = Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(top = 24.dp, bottom = 100.dp)) {
             item {
                 Column(modifier = Modifier.padding(horizontal = 24.dp).padding(bottom = 24.dp)) {
-                    Text("TU GALERÍA", fontSize = 40.sp, fontWeight = FontWeight.Black, letterSpacing = (-2).sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f))
-                    Text(if (tripDestination != null) tripDestination else "Capturas de Misión", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.offset(y = (-20).dp))
+                    Text(stringResource(R.string.gallery_title), fontSize = 40.sp, fontWeight = FontWeight.Black, letterSpacing = (-2).sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f))
+                    Text(if (tripDestination != null) tripDestination else stringResource(R.string.mission_captures), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.offset(y = (-20).dp))
                 }
             }
 
@@ -71,7 +73,7 @@ fun GalleryScreen(tripDestination: String? = null, onBack: () -> Unit) {
                     Column(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Default.NoPhotography, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color.LightGray)
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Aún no hay capturas de esta misión", color = Color.Gray)
+                        Text(stringResource(R.string.no_photos), color = Color.Gray)
                     }
                 }
             }
@@ -90,7 +92,7 @@ fun TripGallerySection(tripGallery: TripGallery, color: Color) {
     Column(modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)) {
         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 12.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text(tripGallery.tripName.uppercase(), fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = color)
-            Text("${tripGallery.images.size} CAPTURAS", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.captures_count, tripGallery.images.size), fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
         }
         LazyRow(contentPadding = PaddingValues(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             items(tripGallery.images) { image -> GalleryImageCard(image) }
@@ -112,23 +114,24 @@ fun GalleryImageCard(image: GalleryImage) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPhotoContent(mambaNeon: Color, initialTrip: String?, onClose: () -> Unit) {
-    var selectedTrip by remember { mutableStateOf(initialTrip ?: "Selecciona un viaje") }
+    val selectTripStr = stringResource(R.string.select_trip)
+    var selectedTrip by remember { mutableStateOf(initialTrip ?: selectTripStr) }
     var expanded by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth().padding(24.dp).padding(bottom = 32.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Text("Añadir Nueva Captura", fontWeight = FontWeight.Black, fontSize = 24.sp, color = MaterialTheme.colorScheme.onSurface)
+        Text(stringResource(R.string.add_photo_title), fontWeight = FontWeight.Black, fontSize = 24.sp, color = MaterialTheme.colorScheme.onSurface)
 
         Box(modifier = Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable { }, contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(Icons.Default.CloudUpload, contentDescription = null, tint = mambaNeon, modifier = Modifier.size(40.dp))
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Toca para explorar galería", color = Color.Gray, fontSize = 12.sp)
+                Text(stringResource(R.string.explore_gallery), color = Color.Gray, fontSize = 12.sp)
             }
         }
 
         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
             OutlinedTextField(
-                value = selectedTrip, onValueChange = {}, readOnly = true, label = { Text("¿A qué misión pertenece?") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }, modifier = Modifier.fillMaxWidth().menuAnchor(),
+                value = selectedTrip, onValueChange = {}, readOnly = true, label = { Text(stringResource(R.string.mission_select)) }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }, modifier = Modifier.fillMaxWidth().menuAnchor(),
                 colors = OutlinedTextFieldDefaults.colors(disabledTextColor = MaterialTheme.colorScheme.onSurface, disabledBorderColor = Color.Gray, disabledLabelColor = mambaNeon)
             )
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
@@ -136,8 +139,8 @@ fun AddPhotoContent(mambaNeon: Color, initialTrip: String?, onClose: () -> Unit)
             }
         }
 
-        Button(onClick = { onClose() }, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = mambaNeon), enabled = selectedTrip != "Selecciona un viaje") {
-            Text("GUARDAR RECUERDO", fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+        Button(onClick = { onClose() }, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = mambaNeon), enabled = selectedTrip != selectTripStr) {
+            Text(stringResource(R.string.save_memory), fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
         }
     }
 }

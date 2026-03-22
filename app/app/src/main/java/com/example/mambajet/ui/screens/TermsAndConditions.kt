@@ -9,18 +9,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.mambajet.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TermsAndConditionsScreen(onBack: () -> Unit) {
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background, // DINÁMICO
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("LEGAL", letterSpacing = 4.sp, fontWeight = FontWeight.Light, fontSize = 12.sp) },
+                title = { Text(stringResource(R.string.legal_uppercase), letterSpacing = 4.sp, fontWeight = FontWeight.Light, fontSize = 12.sp) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", modifier = Modifier.size(20.dp)) } },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
@@ -32,11 +34,11 @@ fun TermsAndConditionsScreen(onBack: () -> Unit) {
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 24.dp).verticalScroll(rememberScrollState())) {
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Términos y Condiciones", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground)
+            Text(stringResource(R.string.terms), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.height(24.dp))
-            LegalTextItem("1. Aceptación del Servicio", "Al utilizar MambaJet, aceptas cumplir estos términos...")
-            LegalTextItem("2. Uso de Datos", "Tus datos de viaje se guardan localmente para tu privacidad...")
-            LegalTextItem("3. Recomendaciones IA", "MambaJet no se responsabiliza de la precisión de la IA...")
+            LegalTextItem(stringResource(R.string.terms_1_title), stringResource(R.string.terms_1_body))
+            LegalTextItem(stringResource(R.string.terms_2_title), stringResource(R.string.terms_2_body))
+            LegalTextItem(stringResource(R.string.terms_3_title), stringResource(R.string.terms_3_body))
             Spacer(modifier = Modifier.height(32.dp))
         }
     }

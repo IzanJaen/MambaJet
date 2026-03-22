@@ -9,9 +9,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.mambajet.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,10 +24,10 @@ fun AIRecommendationsScreen(destination: String, onBack: () -> Unit) {
     var showResult by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background, // DINÁMICO
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("MAMBA INTELLIGENCE", letterSpacing = 2.sp, fontWeight = FontWeight.Light, fontSize = 12.sp) },
+                title = { Text(stringResource(R.string.ai_title), letterSpacing = 2.sp, fontWeight = FontWeight.Light, fontSize = 12.sp) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back") } },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
@@ -38,13 +40,13 @@ fun AIRecommendationsScreen(destination: String, onBack: () -> Unit) {
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 24.dp)) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Optimización para $destination", fontWeight = FontWeight.Black, fontSize = 24.sp, color = MaterialTheme.colorScheme.onBackground)
-            Text("Pide sugerencias o pide analizar tu presupuesto restante.", fontSize = 14.sp, color = Color.Gray, modifier = Modifier.padding(top = 4.dp))
+            Text(stringResource(R.string.optimization_for, destination), fontWeight = FontWeight.Black, fontSize = 24.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(stringResource(R.string.ask_suggestions), fontSize = 14.sp, color = Color.Gray, modifier = Modifier.padding(top = 4.dp))
 
             Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedTextField(
-                value = prompt, onValueChange = { prompt = it }, label = { Text("Ej: Dame un restaurante barato cerca del centro") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
+                value = prompt, onValueChange = { prompt = it }, label = { Text(stringResource(R.string.ai_prompt)) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -57,7 +59,7 @@ fun AIRecommendationsScreen(destination: String, onBack: () -> Unit) {
             ) {
                 Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("ANALIZAR", fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                Text(stringResource(R.string.analyze), fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -68,15 +70,15 @@ fun AIRecommendationsScreen(destination: String, onBack: () -> Unit) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Restaurant, tint = aiAccent, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Sugerencia Encontrada", fontWeight = FontWeight.Bold, color = aiAccent)
+                            Text(stringResource(R.string.suggestion_found), fontWeight = FontWeight.Bold, color = aiAccent)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Ramen Ichiran en Shibuya. Coste estimado: 12€. Encaja perfectamente en tu presupuesto diario de 45€.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                        Text(stringResource(R.string.ai_example_result), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
 
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Button(onClick = { }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = mambaNeon)) {
-                            Text("CONVERTIR EN WAYPOINT", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.convert_waypoint), fontWeight = FontWeight.Bold)
                         }
                     }
                 }

@@ -80,4 +80,27 @@
     <string name="analyze">ANALITZAR</string>
     <string name="suggestion_found">Suggeriment Trobat</string>
     <string name="convert_waypoint">CONVERTIR EN WAYPOINT</string>
+    <string name="legal_uppercase">LEGAL</string>
+    <string name="terms_1_title">1. Acceptació del Servei</string>
+    <string name="terms_1_body">En utilitzar MambaJet, acceptes complir aquests termes...</string>
+    <string name="terms_2_title">2. Ús de Dades</string>
+    <string name="terms_2_body">Les teves dades de viatge es guarden localment per a la teva privacitat...</string>
+    <string name="terms_3_title">3. Recomanacions IA</string>
+    <string name="terms_3_body">MambaJet no es responsabilitza de la precisió de la IA...</string>
+
+    <string name="about_us_uppercase">SOBRE NOSALTRES</string>
+    <string name="dev_team">MambaJet Dev Team</string>
+    <string name="version_text">Versió 2.1.0 (Memòria InMemory)</string>
+    <string name="about_us_desc">MambaJet va néixer de la necessitat de simplificar la planificació de viatges grupals, integrant recomanacions intel·ligents i un seguiment de pressupost intuïtiu. Desenvolupat amb passió utilitzant Jetpack Compose.</string>
+
+    <string name="optimization_for">Optimització per a %1$s</string>
+    <string name="ask_suggestions">Demana suggeriments o analitza el teu pressupost restant.</string>
+    <string name="ai_example_result">Ramen Ichiran a Shibuya. Cost estimat: 12€. Encaixa perfectament en el teu pressupost diari de 45€.</string>
+
+    <string name="radar_title">RADAR: %1$s</string>
+    <string name="radar_module">Mòdul de Radar</string>
+
+    <string name="mission_captures">Captures de Missió</string>
+    <string name="captures_count">%1$d CAPTURES</string>
+    <string name="select_trip">Selecciona un viatge</string>
 </resources>
