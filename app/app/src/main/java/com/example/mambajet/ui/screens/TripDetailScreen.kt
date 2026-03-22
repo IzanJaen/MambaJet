@@ -1,5 +1,6 @@
 package com.example.mambajet.ui.screens
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,365 +16,154 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mambajet.R
+import com.example.mambajet.domain.Activity
+import com.example.mambajet.domain.PlanType
+import com.example.mambajet.ui.viewmodels.ActivityViewModel
+import com.example.mambajet.ui.viewmodels.TripListViewModel
 
-// --- DATOS ---
-data class ItineraryActivity(
-    val time: String,
-    val title: String,
-    val description: String,
-    val icon: ImageVector,
-    val cost: Double
-)
-
-data class DayGroup(
-    val date: String,
-    val activities: List<ItineraryActivity>
-)
-
-val mockItineraryData = listOf(
-    DayGroup("viernes, 15 may", listOf(
-        ItineraryActivity("10:06", "Vuelo MJ-200", "Iberia - Terminal 3", Icons.Default.Flight, 450.0),
-        ItineraryActivity("15:00", "Hotel Imperial", "Check in: 15:00 JST\nTokyo, Shinjuku...", Icons.Default.Hotel, 850.0),
-    )),
-    DayGroup("sábado, 16 may", listOf(
-        ItineraryActivity("11:00", "Mamba City Tour", "Exploración de Shibuya", Icons.Default.DirectionsWalk, 45.0)
-    ))
-)
-
-// --- PANTALLA DE DETALLE ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TripDetailScreen(
-    destination: String,
-    onBack: () -> Unit,
-    onAddActivityClick: () -> Unit,
-    onGalleryClick: () -> Unit,
-    onMapClick: () -> Unit, // <--- NUEVO: Para navegar al mapa
-    onAIClick: () -> Unit   // <--- NUEVO: Para navegar a la IA
-) {
+fun TripDetailScreen(destination: String, viewModel: ActivityViewModel, tripViewModel: TripListViewModel, onBack: () -> Unit, onAddActivityClick: () -> Unit, onGalleryClick: () -> Unit, onMapClick: () -> Unit, onAIClick: () -> Unit, onDeleteConfirm: () -> Unit, onEditTripClick: () -> Unit, onEditActivityClick: (String) -> Unit) {
     val mambaNeon = Color(0xFF2DB300)
     val dangerRed = Color(0xFFFF3B30)
-    val aiAccent = Color(0xFFAF4B7C) // Color de la IA
+    val aiAccent = Color(0xFFAF4B7C)
 
-    // Estados para los menús y diálogos
     var showMenu by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDeleteTripDialog by remember { mutableStateOf(false) }
+    var activityToDelete by remember { mutableStateOf<Activity?>(null) }
+
+    LaunchedEffect(destination) { viewModel.loadActivities(destination) }
+    val activities by viewModel.activities.collectAsState()
+    val groupedActivities = activities.groupBy { it.date }
+    LaunchedEffect(activities) {
+        val totalCost = activities.sumOf { it.cost }
+        tripViewModel.updateTripBudget(destination, totalCost)
+    }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("PLAN DE VIAJE", letterSpacing = 4.sp, fontWeight = FontWeight.Light, fontSize = 12.sp) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", modifier = Modifier.size(20.dp))
-                    }
-                },
+                title = { Text(stringResource(R.string.trip_plan), letterSpacing = 4.sp, fontWeight = FontWeight.Light, fontSize = 12.sp) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBackIosNew, null, modifier = Modifier.size(20.dp)) } },
                 actions = {
-                    // --- MENÚ DE OPCIONES (Para esconder Eliminar Viaje) ---
-                    IconButton(onClick = { showMenu = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Opciones")
-                    }
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false },
-                        modifier = Modifier.background(Color.White)
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Ajustes del Viaje", color = Color.Black) },
-                            onClick = { showMenu = false },
-                            leadingIcon = { Icon(Icons.Default.Settings, null, tint = Color.Gray) }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Eliminar Misión", color = dangerRed, fontWeight = FontWeight.Bold) },
-                            onClick = {
-                                showMenu = false
-                                showDeleteDialog = true
-                            },
-                            leadingIcon = { Icon(Icons.Default.DeleteForever, null, tint = dangerRed) }
-                        )
+                    IconButton(onClick = onAIClick) { Icon(Icons.Default.AutoAwesome, null, tint = aiAccent) }
+                    IconButton(onClick = { showMenu = true }) { Icon(Icons.Default.MoreVert, stringResource(R.string.options)) }
+                    DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }, modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.trip_settings), color = MaterialTheme.colorScheme.onSurface) }, onClick = { showMenu = false; onEditTripClick() }, leadingIcon = { Icon(Icons.Default.Settings, null, tint = Color.Gray) })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.delete_mission), color = dangerRed, fontWeight = FontWeight.Bold) }, onClick = { showMenu = false; showDeleteTripDialog = true }, leadingIcon = { Icon(Icons.Default.DeleteForever, null, tint = dangerRed) })
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background, titleContentColor = MaterialTheme.colorScheme.onBackground, navigationIconContentColor = MaterialTheme.colorScheme.onBackground)
             )
         },
-        // --- BARRA INFERIOR SIMÉTRICA (Galería - Añadir - Mapa) ---
         bottomBar = {
-            Surface(
-                color = Color.White,
-                shadowElevation = 16.dp,
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Izquierda: Galería
+            Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 16.dp, shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) {
+                Row(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) { BottomActionIcon(Icons.Default.PhotoLibrary, stringResource(R.string.gallery)) { onGalleryClick() } }
                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        BottomActionIcon(icon = Icons.Default.PhotoLibrary, label = "Galería") { onGalleryClick() }
-                    }
-
-                    // Centro: Añadir Actividad
-                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        FloatingActionButton(
-                            onClick = onAddActivityClick,
-                            containerColor = mambaNeon,
-                            contentColor = Color.White,
-                            shape = RoundedCornerShape(16.dp),
-                            elevation = FloatingActionButtonDefaults.elevation(0.dp)
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = "Añadir", modifier = Modifier.size(28.dp))
+                        FloatingActionButton(onClick = onAddActivityClick, containerColor = mambaNeon, contentColor = Color.White, shape = RoundedCornerShape(16.dp), elevation = FloatingActionButtonDefaults.elevation(0.dp)) {
+                            Icon(Icons.Default.Add, stringResource(R.string.add), modifier = Modifier.size(28.dp))
                         }
                     }
-
-                    // Derecha: Mapa (Ahora conectado)
-                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        BottomActionIcon(icon = Icons.Default.Map, label = "Mapa") { onMapClick() }
-                    }
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) { BottomActionIcon(Icons.Default.Map, stringResource(R.string.map)) { onMapClick() } }
                 }
             }
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 24.dp)
-        ) {
-            // Header Futurista
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 24.dp)) {
             item {
                 Box(modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp)) {
                     Column {
-                        Text(
-                            text = destination.uppercase(),
-                            fontSize = 40.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = (-2).sp,
-                            color = Color.Black.copy(alpha = 0.05f)
-                        )
-                        Text(
-                            text = destination,
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.Black
-                        )
+                        Text(destination.uppercase(), fontSize = 40.sp, fontWeight = FontWeight.Black, letterSpacing = (-2).sp, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.05f))
+                        Text(destination, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onBackground)
                     }
-                    Image(
-                        painter = painterResource(id = R.drawable.tokio_test), // Asegúrate de tener esta imagen o cámbiala
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(100.dp)
-                            .align(Alignment.CenterEnd)
-                            .clip(RoundedCornerShape(24.dp))
-                            .border(1.dp, mambaNeon, RoundedCornerShape(24.dp)),
-                        contentScale = ContentScale.Crop
-                    )
                 }
             }
-
-            // --- TARJETA DE RESUMEN FINANCIERO (VERDE MAMBA) ---
             item {
-                val totalCost = mockItineraryData.flatMap { it.activities }.sumOf { it.cost }
-                val totalActivities = mockItineraryData.flatMap { it.activities }.size
-
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                    colors = CardDefaults.cardColors(containerColor = mambaNeon),
-                    shape = RoundedCornerShape(20.dp),
-                    elevation = CardDefaults.cardElevation(4.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(20.dp).fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                val totalCost = activities.sumOf { it.cost }
+                Card(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp), colors = CardDefaults.cardColors(containerColor = mambaNeon), shape = RoundedCornerShape(20.dp)) {
+                    Row(modifier = Modifier.padding(20.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
-                            Text("GASTO ACTUAL", color = Color.White.copy(alpha = 0.8f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                            Text(stringResource(R.string.current_expense), color = Color.White.copy(alpha = 0.8f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                             Text("${totalCost.toInt()}€", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("ACTIVIDADES", color = Color.White.copy(alpha = 0.8f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                            Text("$totalActivities", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                            Text(stringResource(R.string.activities), color = Color.White.copy(alpha = 0.8f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                            Text("${activities.size}", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
                         }
                     }
                 }
             }
-
-            // --- BOTÓN DE MAMBA IA ---
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp)
-                        .clickable { onAIClick() },
-                    colors = CardDefaults.cardColors(containerColor = aiAccent.copy(alpha = 0.1f)),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(0.dp),
-                    border = BorderStroke(1.dp, aiAccent.copy(alpha = 0.3f))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = aiAccent, modifier = Modifier.size(28.dp))
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Mamba Intelligence", fontWeight = FontWeight.Bold, color = aiAccent, fontSize = 14.sp)
-                            Text("Optimiza gastos y sugiere rutas", fontSize = 12.sp, color = Color.DarkGray)
-                        }
-                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = aiAccent)
-                    }
+            groupedActivities.forEach { (date, dailyActivities) ->
+                item { Text(date.uppercase(), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Gray, modifier = Modifier.padding(bottom = 12.dp, top = 16.dp)) }
+                items(dailyActivities, key = { it.id }) { activity ->
+                    val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { value -> if (value == SwipeToDismissBoxValue.EndToStart) { activityToDelete = activity; false } else false })
+                    FuturisticTimelineItem(activity, mambaNeon, dismissState, onClick = { onEditActivityClick(activity.id) })
                 }
             }
-
-            // Itinerario Dinámico
-            mockItineraryData.forEach { dayGroup ->
-                item {
-                    Text(
-                        text = dayGroup.date.uppercase(),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
-                }
-                items(dayGroup.activities) { activity ->
-                    FuturisticTimelineItem(activity, mambaNeon)
-                }
-            }
-
-            item { Spacer(modifier = Modifier.height(100.dp)) } // Espacio extra para que la barra inferior no tape
+            item { Spacer(modifier = Modifier.height(100.dp)) }
         }
+    }
 
-        // --- DIÁLOGO DE CONFIRMACIÓN DE BORRADO ---
-        if (showDeleteDialog) {
-            AlertDialog(
-                onDismissRequest = { showDeleteDialog = false },
-                title = { Text("Abortar Misión", fontWeight = FontWeight.Bold) },
-                text = { Text("¿Estás seguro de que quieres eliminar este viaje? Esta acción destruirá todas las capturas y waypoints asociados y no se puede deshacer.") },
-                confirmButton = {
-                    TextButton(onClick = {
-                        showDeleteDialog = false
-                        // @TODO Llamar a Trip.deleteTrip()
-                        onBack()
-                    }) { Text("DESTRUIR", color = dangerRed, fontWeight = FontWeight.Bold) }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDeleteDialog = false }) { Text("CANCELAR", color = Color.Gray) }
-                },
-                containerColor = Color.White
-            )
-        }
+    if (activityToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { activityToDelete = null },
+            title = { Text(stringResource(R.string.delete_plan), color = MaterialTheme.colorScheme.onSurface) },
+            text = { Text(stringResource(R.string.delete_plan_msg), color = MaterialTheme.colorScheme.onSurface) },
+            confirmButton = { TextButton(onClick = { viewModel.deleteActivity(activityToDelete!!.id, destination); activityToDelete = null }) { Text(stringResource(R.string.delete), color = dangerRed, fontWeight = FontWeight.Bold) } },
+            dismissButton = { TextButton(onClick = { activityToDelete = null }) { Text(stringResource(R.string.cancel), color = Color.Gray) } },
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    }
+
+    if (showDeleteTripDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteTripDialog = false },
+            title = { Text(stringResource(R.string.destroy_mission), color = MaterialTheme.colorScheme.onSurface) },
+            text = { Text(stringResource(R.string.destroy_mission_msg), color = MaterialTheme.colorScheme.onSurface) },
+            confirmButton = { TextButton(onClick = { showDeleteTripDialog = false; onDeleteConfirm() }) { Text(stringResource(R.string.destroy), color = dangerRed, fontWeight = FontWeight.Bold) } },
+            dismissButton = { TextButton(onClick = { showDeleteTripDialog = false }) { Text(stringResource(R.string.cancel), color = Color.Gray) } },
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 }
 
-// COMPONENTE PARA LOS ICONOS DE LA BARRA INFERIOR
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomActionIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { onClick() }.padding(8.dp)
-    ) {
-        Icon(icon, contentDescription = label, tint = Color.Gray, modifier = Modifier.size(28.dp))
+fun FuturisticTimelineItem(activity: Activity, color: Color, dismissState: SwipeToDismissBoxState, onClick: () -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Text(text = activity.time, modifier = Modifier.width(45.dp).padding(top = 16.dp), fontWeight = FontWeight.Bold, fontSize = 13.sp, fontFamily = FontFamily.Monospace, color = MaterialTheme.colorScheme.onBackground)
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 16.dp).padding(top = 20.dp)) {
+            Box(modifier = Modifier.size(8.dp).background(color, CircleShape).border(2.dp, MaterialTheme.colorScheme.background, CircleShape))
+            Box(modifier = Modifier.width(2.dp).height(80.dp).background(Brush.verticalGradient(listOf(color, Color.Transparent))))
+        }
+        SwipeToDismissBox(state = dismissState, enableDismissFromStartToEnd = false, modifier = Modifier.fillMaxWidth(), backgroundContent = { Box(modifier = Modifier.fillMaxSize().padding(bottom = 16.dp).clip(RoundedCornerShape(topStart = 0.dp, bottomStart = 24.dp, topEnd = 24.dp, bottomEnd = 24.dp)).background(Color(0xFFFF3B30)), contentAlignment = Alignment.CenterEnd) { Icon(Icons.Default.Delete, null, tint = Color.White, modifier = Modifier.padding(end = 24.dp)) } }) {
+            Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).clickable { onClick() }, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), shape = RoundedCornerShape(topStart = 0.dp, bottomStart = 24.dp, topEnd = 24.dp, bottomEnd = 24.dp)) {
+                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Surface(modifier = Modifier.size(40.dp), color = MaterialTheme.colorScheme.background, shape = RoundedCornerShape(12.dp), shadowElevation = 2.dp) { Icon(activity.type.getIcon(), null, tint = color, modifier = Modifier.padding(10.dp)) }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(activity.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
+                        if (activity.description.isNotEmpty()) Text(activity.description, fontSize = 12.sp, color = Color.Gray)
+                    }
+                    Text("${activity.cost.toInt()}€", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                }
+            }
+        }
+    }
+}
+@Composable
+fun BottomActionIcon(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onClick() }.padding(8.dp)) {
+        Icon(icon, null, tint = Color.Gray, modifier = Modifier.size(28.dp))
         Spacer(modifier = Modifier.height(4.dp))
         Text(label, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
-    }
-}
-
-// LÍNEA DEL TIEMPO
-@Composable
-fun FuturisticTimelineItem(activity: ItineraryActivity, color: Color) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-    ) {
-        // Tiempo
-        Text(
-            text = activity.time,
-            modifier = Modifier.width(45.dp).padding(top = 2.dp),
-            fontWeight = FontWeight.Bold,
-            fontSize = 13.sp,
-            fontFamily = FontFamily.Monospace,
-            color = Color.Black
-        )
-
-        // Línea Jet Stream
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxHeight().padding(horizontal = 16.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .background(color, CircleShape)
-                    .border(2.dp, Color.White, CircleShape)
-            )
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .fillMaxHeight()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(color, Color.Transparent)
-                        )
-                    )
-            )
-        }
-
-        // Tarjeta de Actividad
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
-            shape = RoundedCornerShape(topStart = 0.dp, bottomStart = 24.dp, topEnd = 24.dp, bottomEnd = 24.dp),
-            elevation = CardDefaults.cardElevation(0.dp)
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    modifier = Modifier.size(40.dp),
-                    color = Color.White,
-                    shape = RoundedCornerShape(12.dp),
-                    shadowElevation = 2.dp
-                ) {
-                    Icon(
-                        imageVector = activity.icon,
-                        contentDescription = null,
-                        tint = color,
-                        modifier = Modifier.padding(10.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(activity.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.Black)
-                    if (activity.description.isNotEmpty()) {
-                        Text(activity.description, fontSize = 12.sp, color = Color.Gray)
-                    }
-                }
-
-                Text(
-                    text = "${activity.cost.toInt()}€",
-                    fontWeight = FontWeight.Black,
-                    color = Color.Black,
-                    fontSize = 14.sp
-                )
-            }
-        }
     }
 }

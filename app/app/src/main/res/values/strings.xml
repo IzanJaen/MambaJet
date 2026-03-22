@@ -1,3 +1,90 @@
 <resources>
     <string name="app_name">MambaJet</string>
+    <string name="cancel">CANCELAR</string>
+    <string name="save">GUARDAR</string>
+    <string name="save_changes">GUARDAR CANVIS</string>
+    <string name="delete">ELIMINAR</string>
+    <string name="edit">Editar</string>
+    <string name="add">Añadir</string>
+
+    <string name="home_title">Tus Próximos Viajes</string>
+    <string name="gallery">Galería</string>
+    <string name="map">Mapa</string>
+    <string name="profile">Perfil</string>
+    <string name="new_trip">Nuevo Viaje</string>
+    <string name="budget">Presupuesto:</string>
+    <string name="mamba_elite">MAMBA ELITE MEMBER</string>
+    <string name="user_settings">Ajustes de Usuario</string>
+    <string name="about_us">Sobre Nosotros</string>
+    <string name="terms">Términos y Condiciones</string>
+    <string name="app_settings">Ajustes de App</string>
+
+    <string name="trip_plan">PLAN DE VIAJE</string>
+    <string name="options">Opciones</string>
+    <string name="trip_settings">Ajustes del Viaje</string>
+    <string name="delete_mission">Eliminar Misión</string>
+    <string name="current_expense">GASTO ACTUAL</string>
+    <string name="activities">ACTIVIDADES</string>
+    <string name="delete_plan">Eliminar Plan</string>
+    <string name="delete_plan_msg">¿Seguro que quieres borrar esto de tu itinerario?</string>
+    <string name="destroy_mission">Destruir Misión</string>
+    <string name="destroy_mission_msg">¿Deseas eliminar este viaje y todos sus planes?</string>
+    <string name="destroy">DESTRUIR</string>
+
+    <string name="new_trip_title">NUEVO VIAJE</string>
+    <string name="edit_trip_title">EDITAR VIAJE</string>
+    <string name="start_trip">Inicia tu Viaje</string>
+    <string name="trip_name">Nombre del viaje / Destino</string>
+    <string name="destination">Destino</string>
+    <string name="est_budget">Presupuesto Estimado (€)</string>
+    <string name="trip_desc">Descripción del viaje</string>
+    <string name="start_date">Fecha de Inicio</string>
+    <string name="end_date">Fecha Final</string>
+    <string name="missing_fields">* Faltan campos obligatorios</string>
+    <string name="confirm_trip">CONFIRMAR VIAJE</string>
+    <string name="error_past_date">El viaje no puede empezar en el pasado.</string>
+    <string name="error_end_date">La fecha final debe ser posterior a la de inicio.</string>
+
+    <string name="new_activity">NUEVA ACTIVIDAD</string>
+    <string name="edit_plan">EDITAR PLAN</string>
+    <string name="plan_details">Detalles del Plan</string>
+    <string name="category">Categoría</string>
+    <string name="title_ph">Título (ej. Cena)</string>
+    <string name="date">Fecha</string>
+    <string name="time">Hora</string>
+    <string name="cost">Coste estimado (€)</string>
+    <string name="notes">Notas o localizador</string>
+    <string name="add_itinerary">AFEGIR A L\'ITINERARI</string>
+    <string name="error_date_bounds">La fecha debe estar entre el inicio y el fin del viaje.</string>
+
+    <string name="settings_title">AJUSTES DE APP</string>
+    <string name="settings_preferences">PREFERENCIAS</string>
+    <string name="settings_dark_mode">Tema Oscuro</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_system">SISTEMA</string>
+    <string name="profile_settings">AJUSTES DE PERFIL</string>
+    <string name="name">Nombre</string>
+    <string name="dob">Fecha de Nacimiento</string>
+    <string name="email">Correo electrónico</string>
+    <string name="logout">CERRAR SESIÓN</string>
+    <string name="logout_title">Cerrar Sesión</string>
+    <string name="logout_msg">¿Estás seguro de que quieres salir?</string>
+    <string name="exit">SALIR</string>
+
+    <string name="memories">MEMORIAS</string>
+    <string name="gallery_title">TU GALERÍA</string>
+    <string name="no_photos">Aún no hay capturas de esta misión</string>
+    <string name="add_photo_title">Añadir Nueva Captura</string>
+    <string name="explore_gallery">Toca para explorar galería</string>
+    <string name="mission_select">¿A qué misión pertenece?</string>
+    <string name="save_memory">GUARDAR RECUERDO</string>
+    <string name="radar">RADAR</string>
+    <string name="gps_pending">Integración GPS Pendiente</string>
+    <string name="hotels">Hoteles</string>
+    <string name="gastronomy">Gastronomía</string>
+    <string name="ai_title">MAMBA INTELLIGENCE</string>
+    <string name="ai_prompt">Ej: Dame un restaurante barato cerca del centro</string>
+    <string name="analyze">ANALIZAR</string>
+    <string name="suggestion_found">Sugerencia Encontrada</string>
+    <string name="convert_waypoint">CONVERTIR EN WAYPOINT</string>
 </resources>

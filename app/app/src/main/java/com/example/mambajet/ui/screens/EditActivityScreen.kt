@@ -21,18 +21,26 @@ import androidx.compose.ui.unit.sp
 import com.example.mambajet.R
 import com.example.mambajet.domain.Activity
 import com.example.mambajet.domain.PlanType
+import com.example.mambajet.ui.viewmodels.ActivityViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddActivityScreen(tripId: String, tripStartDate: String, tripEndDate: String, onBack: () -> Unit, onActivitySaved: (Activity) -> Unit) {
+fun EditActivityScreen(activityId: String, tripStartDate: String, tripEndDate: String, viewModel: ActivityViewModel, onBack: () -> Unit, onActivityUpdated: (Activity) -> Unit) {
     val mambaNeon = Color(0xFF2DB300)
+    val activities by viewModel.activities.collectAsState()
+    val activityToEdit = activities.find { it.id == activityId }
 
-    var title by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf("") }
-    var time by remember { mutableStateOf("") }
-    var cost by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var selectedType by remember { mutableStateOf(PlanType.EXPLORATION) }
+    if (activityToEdit == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = mambaNeon) }
+        return
+    }
+
+    var title by remember { mutableStateOf(activityToEdit.title) }
+    var date by remember { mutableStateOf(activityToEdit.date) }
+    var time by remember { mutableStateOf(activityToEdit.time) }
+    var cost by remember { mutableStateOf(activityToEdit.cost.toInt().toString()) }
+    var description by remember { mutableStateOf(activityToEdit.description) }
+    var selectedType by remember { mutableStateOf(activityToEdit.type) }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -53,7 +61,7 @@ fun AddActivityScreen(tripId: String, tripStartDate: String, tripEndDate: String
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.new_activity), letterSpacing = 4.sp, fontSize = 12.sp, fontWeight = FontWeight.Light) },
+                title = { Text(stringResource(R.string.edit_plan), letterSpacing = 4.sp, fontSize = 12.sp, fontWeight = FontWeight.Light) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.Close, null) } },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background, titleContentColor = MaterialTheme.colorScheme.onBackground, navigationIconContentColor = MaterialTheme.colorScheme.onBackground)
             )
@@ -90,18 +98,15 @@ fun AddActivityScreen(tripId: String, tripStartDate: String, tripEndDate: String
 
             Spacer(modifier = Modifier.weight(1f))
 
-            val allFieldsFilled = title.isNotEmpty() && date.isNotEmpty() && time.isNotEmpty() && cost.isNotEmpty()
-            if (!allFieldsFilled) Text(text = stringResource(R.string.missing_fields), color = Color.Gray, fontSize = 12.sp)
             if (dateError != null) Text(text = "⚠️ $dateError", color = Color(0xFFFF3B30), fontSize = 12.sp, fontWeight = FontWeight.Bold)
 
-            Button(onClick = { onActivitySaved(Activity(tripId = tripId, title = title, description = description, date = date, time = time, cost = cost.toDoubleOrNull() ?: 0.0, type = selectedType)); onBack() }, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = mambaNeon), enabled = allFieldsFilled && dateError == null) {
-                Text(stringResource(R.string.add_itinerary), fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-            }
+            Button(
+                onClick = { onActivityUpdated(Activity(id = activityToEdit.id, tripId = activityToEdit.tripId, title = title, description = description, date = date, time = time, cost = cost.toDoubleOrNull() ?: 0.0, type = selectedType)); onBack() },
+                modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = mambaNeon), enabled = title.isNotEmpty() && dateError == null
+            ) { Text(stringResource(R.string.save_changes), fontWeight = FontWeight.Bold, letterSpacing = 2.sp) }
         }
     }
-
     if (showDatePicker) MambaDatePicker(onDateSelected = { date = it }, onDismiss = { showDatePicker = false })
     if (showTimePicker) MambaTimePicker(onTimeSelected = { time = it }, onDismiss = { showTimePicker = false })
 }
-
 

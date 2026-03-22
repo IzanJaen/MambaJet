@@ -20,51 +20,38 @@ fun MapScreen(destination: String, onBack: () -> Unit) {
     val mambaNeon = Color(0xFF2DB300)
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background, // DINÁMICO
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("RADAR: $destination", letterSpacing = 2.sp, fontWeight = FontWeight.Light, fontSize = 12.sp) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
-                    }
-                }
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back") } },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+                )
             )
         }
     ) { padding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(Color.LightGray) // Simulador visual del mapa de fondo
+            modifier = Modifier.fillMaxSize().padding(padding).background(MaterialTheme.colorScheme.surfaceVariant) // Simulador adaptado
         ) {
-            // @TODO Integrar Google Maps SDK aquí y llamar a TripMap.plotTripActivities()
-
-            Column(
-                modifier = Modifier.align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(Icons.Default.Map, contentDescription = null, tint = Color.DarkGray, modifier = Modifier.size(64.dp))
-                Text("Módulo de Radar", fontWeight = FontWeight.Bold, color = Color.DarkGray)
-                Text("Integración GPS Pendiente", fontSize = 12.sp, color = Color.DarkGray)
+            Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Default.Map, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(64.dp))
+                Text("Módulo de Radar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Integración GPS Pendiente", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
-            // Botones flotantes del TripMap (Buscar Hoteles / Restaurantes)
-            Row(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
+            Row(modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 ExtendedFloatingActionButton(
-                    onClick = { /* @TODO TripMap.findNearbyHotels() */ },
+                    onClick = { },
                     containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = mambaNeon,
                     icon = { Icon(Icons.Default.Hotel, null) },
                     text = { Text("Hoteles", fontWeight = FontWeight.Bold) }
                 )
                 ExtendedFloatingActionButton(
-                    onClick = { /* @TODO TripMap.findNearbyRestaurants() */ },
+                    onClick = { },
                     containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = mambaNeon,
                     icon = { Icon(Icons.Default.Restaurant, null) },

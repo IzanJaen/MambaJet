@@ -2,15 +2,16 @@ package com.example.mambajet.domain
 
 import java.util.Date
 
+
 data class Activity(
-    val id: String,
-    val tripId: String,
-    val title: String,
-    val type: PlanType,
-    val scheduledTime: Date,
-    val cost: Double,
-    val location: String,
-    val notes: String
+    val id: String = java.util.UUID.randomUUID().toString(),
+    val tripId: String, // Usaremos el destino (ej. "Tokio, Japón") para enlazarlo fácilmente
+    var title: String,
+    var description: String,
+    var date: String,
+    var time: String,
+    var cost: Double,
+    var type: PlanType
 ) {
     /**
      * Sincroniza la actividad con el calendario nativo del dispositivo (Google/Apple Calendar).

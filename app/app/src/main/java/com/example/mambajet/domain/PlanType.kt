@@ -1,7 +1,7 @@
 package com.example.mambajet.domain
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Flight
+import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
 enum class PlanType {
@@ -15,7 +15,12 @@ enum class PlanType {
      * Obtiene el icono visual asociado al tipo de plan.
      */
     fun getIcon(): ImageVector {
-        // @TODO Map and return corresponding Material icon for each PlanType enum
-        return Icons.Default.Flight // Placeholder
+        return when(this) {
+            FLIGHT -> Icons.Default.Flight
+            HOTEL -> Icons.Default.Hotel
+            RESTAURANT -> Icons.Default.Restaurant
+            TRANSPORT -> Icons.Default.DirectionsCar
+            EXPLORATION -> Icons.Default.Explore
+        }
     }
 }

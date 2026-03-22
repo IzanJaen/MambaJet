@@ -16,30 +16,26 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AIRecommendationsScreen(destination: String, onBack: () -> Unit) {
-    val aiAccent = Color(0xFFAF4B7C) // Color secundario premium para la IA
+    val aiAccent = Color(0xFFAF4B7C)
     val mambaNeon = Color(0xFF2DB300)
     var prompt by remember { mutableStateOf("") }
     var showResult by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.background, // DINÁMICO
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("MAMBA INTELLIGENCE", letterSpacing = 2.sp, fontWeight = FontWeight.Light, fontSize = 12.sp) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
-                    }
-                }
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back") } },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+                )
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 24.dp)
-        ) {
+        Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 24.dp)) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text("Optimización para $destination", fontWeight = FontWeight.Black, fontSize = 24.sp, color = MaterialTheme.colorScheme.onBackground)
@@ -48,17 +44,13 @@ fun AIRecommendationsScreen(destination: String, onBack: () -> Unit) {
             Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedTextField(
-                value = prompt,
-                onValueChange = { prompt = it },
-                label = { Text("Ej: Dame un restaurante barato cerca del centro") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                value = prompt, onValueChange = { prompt = it }, label = { Text("Ej: Dame un restaurante barato cerca del centro") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { showResult = true }, // @TODO: Llamar a AIRecommendation.generateAIRecommendatios()
+                onClick = { showResult = true },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = aiAccent)
@@ -71,10 +63,7 @@ fun AIRecommendationsScreen(destination: String, onBack: () -> Unit) {
             Spacer(modifier = Modifier.height(32.dp))
 
             if (showResult) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = aiAccent.copy(alpha = 0.1f))
-                ) {
+                Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = aiAccent.copy(alpha = 0.1f))) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Restaurant, tint = aiAccent, contentDescription = null)
@@ -86,12 +75,7 @@ fun AIRecommendationsScreen(destination: String, onBack: () -> Unit) {
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Botón de toItineraryItem()
-                        Button(
-                            onClick = { /* @TODO AIRecommendation.applyToTrip() */ },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = mambaNeon)
-                        ) {
+                        Button(onClick = { }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = mambaNeon)) {
                             Text("CONVERTIR EN WAYPOINT", fontWeight = FontWeight.Bold)
                         }
                     }

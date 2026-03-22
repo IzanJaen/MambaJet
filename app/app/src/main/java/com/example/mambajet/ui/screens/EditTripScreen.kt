@@ -1,7 +1,5 @@
 package com.example.mambajet.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,60 +20,42 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTripScreen(onBack: () -> Unit, onTripAdded: (Trip) -> Unit) {
+fun EditTripScreen(tripToEdit: Trip, onBack: () -> Unit, onTripUpdated: (Trip) -> Unit) {
     val mambaNeon = Color(0xFF2DB300)
-
-    var tripName by remember { mutableStateOf("") }
-    var destination by remember { mutableStateOf("") }
-    var estimatedBudget by remember { mutableStateOf("") }
-    var startDate by remember { mutableStateOf("") }
-    var endDate by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    var tripName by remember { mutableStateOf(tripToEdit.title) }
+    var estimatedBudget by remember { mutableStateOf(tripToEdit.totalBudget.toInt().toString()) }
+    var startDate by remember { mutableStateOf(tripToEdit.startDate) }
+    var endDate by remember { mutableStateOf(tripToEdit.endDate) }
+    var description by remember { mutableStateOf(tripToEdit.description) }
 
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
-    val citySuggestions = listOf("Tokio, Japón", "París, Francia", "Nueva York, USA", "Madrid, España")
-    var expanded by remember { mutableStateOf(false) }
     var dateError by remember { mutableStateOf<String?>(null) }
 
-    val errorPastDate = stringResource(R.string.error_past_date)
     val errorEndDate = stringResource(R.string.error_end_date)
 
     LaunchedEffect(startDate, endDate) {
         val start = parseDateValidator(startDate)
         val end = parseDateValidator(endDate)
-        val today = Date(System.currentTimeMillis() - 86400000)
-
-        if (start != null && start.before(today)) dateError = errorPastDate
-        else if (start != null && end != null && end.before(start)) dateError = errorEndDate
-        else dateError = null
+        if (start != null && end != null && end.before(start)) {
+            dateError = errorEndDate
+        } else { dateError = null }
     }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.new_trip_title), letterSpacing = 4.sp, fontSize = 12.sp) },
+                title = { Text(stringResource(R.string.edit_trip_title), letterSpacing = 4.sp, fontSize = 12.sp) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.Close, null) } },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background, titleContentColor = MaterialTheme.colorScheme.onBackground, navigationIconContentColor = MaterialTheme.colorScheme.onBackground)
             )
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(stringResource(R.string.start_trip), fontWeight = FontWeight.Black, fontSize = 28.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(stringResource(R.string.trip_settings), fontWeight = FontWeight.Black, fontSize = 28.sp, color = MaterialTheme.colorScheme.onBackground)
 
             OutlinedTextField(value = tripName, onValueChange = { tripName = it }, label = { Text(stringResource(R.string.trip_name)) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), leadingIcon = { Icon(Icons.Default.Edit, null, tint = mambaNeon) })
-
-            ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
-                OutlinedTextField(value = destination, onValueChange = { destination = it; expanded = it.isNotEmpty() }, label = { Text(stringResource(R.string.destination)) }, modifier = Modifier.fillMaxWidth().menuAnchor(), shape = RoundedCornerShape(12.dp), leadingIcon = { Icon(Icons.Default.Place, null, tint = mambaNeon) }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) })
-                val filteredOptions = citySuggestions.filter { it.contains(destination, ignoreCase = true) }
-                if (filteredOptions.isNotEmpty()) {
-                    ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
-                        filteredOptions.forEach { option -> DropdownMenuItem(text = { Text(option, color = MaterialTheme.colorScheme.onSurface) }, onClick = { destination = option; expanded = false }) }
-                    }
-                }
-            }
-
             OutlinedTextField(value = estimatedBudget, onValueChange = { estimatedBudget = it }, label = { Text(stringResource(R.string.est_budget)) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), leadingIcon = { Icon(Icons.Default.AccountBalanceWallet, null, tint = mambaNeon) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
             OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text(stringResource(R.string.trip_desc)) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), leadingIcon = { Icon(Icons.Default.Description, null, tint = mambaNeon) })
 
@@ -84,20 +64,14 @@ fun AddTripScreen(onBack: () -> Unit, onTripAdded: (Trip) -> Unit) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            val allFieldsFilled = tripName.isNotEmpty() && destination.isNotEmpty() && startDate.isNotEmpty() && endDate.isNotEmpty() && estimatedBudget.isNotEmpty() && description.isNotEmpty()
-            if (!allFieldsFilled) Text(text = stringResource(R.string.missing_fields), color = Color.Gray, fontSize = 12.sp)
             if (dateError != null) Text(text = "⚠️ $dateError", color = Color(0xFFFF3B30), fontSize = 12.sp, fontWeight = FontWeight.Bold)
 
             Button(
-                onClick = { onTripAdded(Trip(title = if (tripName.isNotEmpty()) tripName else destination, startDate = startDate, endDate = endDate, description = description, totalBudget = estimatedBudget.toDoubleOrNull() ?: 0.0, spentBudget = 0.0)); onBack() },
-                modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = mambaNeon),
-                enabled = allFieldsFilled && dateError == null
-            ) {
-                Text(stringResource(R.string.confirm_trip), fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-            }
+                onClick = { onTripUpdated(Trip(id = tripToEdit.id, userId = tripToEdit.userId, title = tripName, startDate = startDate, endDate = endDate, description = description, totalBudget = estimatedBudget.toDoubleOrNull() ?: tripToEdit.totalBudget, spentBudget = tripToEdit.spentBudget)); onBack() },
+                modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = mambaNeon), enabled = tripName.isNotEmpty() && dateError == null
+            ) { Text(stringResource(R.string.save_changes), fontWeight = FontWeight.Bold, letterSpacing = 2.sp) }
         }
     }
-
     if (showStartDatePicker) MambaDatePicker(onDateSelected = { startDate = it }, onDismiss = { showStartDatePicker = false })
     if (showEndDatePicker) MambaDatePicker(onDateSelected = { endDate = it }, onDismiss = { showEndDatePicker = false })
 }

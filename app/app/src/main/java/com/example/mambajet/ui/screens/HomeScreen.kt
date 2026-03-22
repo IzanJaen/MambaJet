@@ -19,17 +19,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource // IMPORTANTE
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mambajet.R
-import com.example.mambajet.domain.Trip // Tu modelo real
-import com.example.mambajet.ui.viewmodels.TripListViewModel // El ViewModel que creamos
+import com.example.mambajet.domain.Trip
+import com.example.mambajet.ui.viewmodels.TripListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: TripListViewModel, // NUEVO: Pasamos el ViewModel
+    viewModel: TripListViewModel,
+    isDarkTheme: Boolean,
     onTripClick: (String) -> Unit,
     onAddTripClick: () -> Unit,
     onGalleryClick: () -> Unit,
@@ -40,181 +42,76 @@ fun HomeScreen(
 ) {
     val mambaNeon = Color(0xFF2DB300)
     var showProfileSheet by remember { mutableStateOf(false) }
-
-    // NUEVO: Observamos la lista de viajes real desde el ViewModel
     val trips by viewModel.trips.collectAsState()
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Image(
-                        painter = painterResource(id = R.drawable.mambajet_banner),
-                        contentDescription = "MambaJet Logo",
-                        modifier = Modifier.height(40.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                title = { Image(painter = painterResource(id = if (isDarkTheme) R.drawable.mambajet_dark_banner else R.drawable.mambajet_banner), contentDescription = "Logo", modifier = Modifier.height(40.dp), contentScale = ContentScale.Fit) },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         bottomBar = {
-            Surface(
-                color = Color.White,
-                shadowElevation = 16.dp,
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 16.dp, shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) {
+                Row(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        HomeBottomActionIcon(icon = Icons.Default.PhotoLibrary, label = "Galería") { onGalleryClick() }
+                        HomeBottomActionIcon(icon = Icons.Default.PhotoLibrary, label = stringResource(R.string.gallery)) { onGalleryClick() }
                     }
                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        FloatingActionButton(
-                            onClick = onAddTripClick,
-                            containerColor = mambaNeon,
-                            contentColor = Color.White,
-                            shape = RoundedCornerShape(16.dp),
-                            elevation = FloatingActionButtonDefaults.elevation(0.dp)
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = "Nuevo Viaje", modifier = Modifier.size(28.dp))
+                        FloatingActionButton(onClick = onAddTripClick, containerColor = mambaNeon, contentColor = Color.White, shape = RoundedCornerShape(16.dp), elevation = FloatingActionButtonDefaults.elevation(0.dp)) {
+                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.new_trip), modifier = Modifier.size(28.dp))
                         }
                     }
                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        HomeBottomActionIcon(icon = Icons.Default.Person, label = "Perfil") { showProfileSheet = true }
+                        HomeBottomActionIcon(icon = Icons.Default.Person, label = stringResource(R.string.profile)) { showProfileSheet = true }
                     }
                 }
             }
         }
     ) { paddingValues ->
-        // Pasamos los viajes reales a la vista principal
-        MainContent(paddingValues, trips, onTripClick)
+        MainContent(paddingValues, trips, onTripClick, isDarkTheme)
 
         if (showProfileSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { showProfileSheet = false },
-                containerColor = Color.White,
-                dragHandle = { BottomSheetDefaults.DragHandle(color = Color.LightGray) }
-            ) {
-                ProfileSheetContent(
-                    color = mambaNeon,
-                    onTermsClick = { showProfileSheet = false; onTermsClick() },
-                    onAboutClick = { showProfileSheet = false; onAboutClick() },
-                    onSettingsClick = { showProfileSheet = false; onSettingsClick() },
-                    onAppSettingsClick = { showProfileSheet = false; onAppSettingsClick()}
-                )
+            ModalBottomSheet(onDismissRequest = { showProfileSheet = false }, containerColor = MaterialTheme.colorScheme.surface, dragHandle = { BottomSheetDefaults.DragHandle(color = Color.LightGray) }) {
+                ProfileSheetContent(color = mambaNeon, isDarkTheme = isDarkTheme, onTermsClick = { showProfileSheet = false; onTermsClick() }, onAboutClick = { showProfileSheet = false; onAboutClick() }, onSettingsClick = { showProfileSheet = false; onSettingsClick() }, onAppSettingsClick = { showProfileSheet = false; onAppSettingsClick() })
             }
         }
     }
 }
 
 @Composable
-fun MainContent(paddingValues: PaddingValues, trips: List<Trip>, onTripClick: (String) -> Unit) {
+fun MainContent(paddingValues: PaddingValues, trips: List<Trip>, onTripClick: (String) -> Unit, isDarkTheme: Boolean) {
     val mambaNeon = Color(0xFF2DB300)
+    Column(modifier = Modifier.fillMaxSize().padding(paddingValues).background(MaterialTheme.colorScheme.background)) {
+        Text(text = stringResource(R.string.home_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .background(Color.White)
-    ) {
-        Text(
-            text = "Tus Próximos Viajes",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(16.dp),
-            fontWeight = FontWeight.Bold
-        )
-
-        LazyColumn(
-            contentPadding = PaddingValues(bottom = 20.dp)
-        ) {
-            // Usamos la lista REAL que viene del ViewModel
+        LazyColumn(contentPadding = PaddingValues(bottom = 20.dp)) {
             itemsIndexed(trips) { index, viaje ->
                 val isFirst = index == 0
                 val progress = if (viaje.totalBudget > 0) (viaje.spentBudget / viaje.totalBudget).toFloat() else 0f
 
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .height(if (isFirst) 140.dp else 120.dp)
-                        .clickable { onTripClick(viaje.title) }, // Pasa el ID en lugar del título para no perder la referencia
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (isFirst) Color(0xFFE8F5E9) else Color(0xFFF8F9FA)
-                    ),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).height(if (isFirst) 140.dp else 120.dp).clickable { onTripClick(viaje.title) },
+                    colors = CardDefaults.cardColors(containerColor = if (isFirst) { if (isDarkTheme) Color(0xFF1B3D20) else Color(0xFFE8F5E9) } else { if (isDarkTheme) Color(0xFF1E1E1E) else Color(0xFFF8F9FA) }),
                     elevation = CardDefaults.cardElevation(if (isFirst) 4.dp else 1.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                    Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.Center) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = viaje.title, // El título del viaje real
-                                    fontWeight = FontWeight.Bold,
-                                    style = if (isFirst) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium
-                                )
-                                Text(
-                                    text = "${viaje.startDate} - ${viaje.endDate}", // Fechas reales concatenadas
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = if (isFirst) Color(0xFF2E7D32) else Color.DarkGray
-                                )
+                                Text(text = viaje.title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground, style = if (isFirst) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium)
+                                Text(text = "${viaje.startDate} - ${viaje.endDate}", style = MaterialTheme.typography.bodySmall, color = if (isFirst) mambaNeon else Color.Gray)
                             }
-
-                            Surface(
-                                shape = CircleShape,
-                                color = if (isFirst) Color.White else Color.LightGray.copy(alpha = 0.2f),
-                                modifier = Modifier.size(40.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.FlightTakeoff, // Icono genérico real
-                                    contentDescription = null,
-                                    tint = if (isFirst) mambaNeon else Color.Gray,
-                                    modifier = Modifier.padding(8.dp)
-                                )
+                            Surface(shape = CircleShape, color = if (isFirst) MaterialTheme.colorScheme.background else Color.LightGray.copy(alpha = 0.2f), modifier = Modifier.size(40.dp)) {
+                                Icon(Icons.Default.FlightTakeoff, null, tint = if (isFirst) mambaNeon else Color.Gray, modifier = Modifier.padding(8.dp))
                             }
                         }
-
                         Spacer(modifier = Modifier.height(if (isFirst) 12.dp else 8.dp))
-
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Presupuesto: ${(progress * 100).toInt()}%",
-                                fontSize = if (isFirst) 14.sp else 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isFirst) mambaNeon else Color.Gray
-                            )
-                            Text(
-                                "${viaje.spentBudget.toInt()}€ / ${viaje.totalBudget.toInt()}€",
-                                fontSize = if (isFirst) 14.sp else 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isFirst) Color.Black else Color.DarkGray
-                            )
+                        Row(modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.budget) + " ${(progress * 100).toInt()}%", fontSize = if (isFirst) 14.sp else 10.sp, fontWeight = FontWeight.Bold, color = if (isFirst) mambaNeon else Color.Gray)
+                            Text("${viaje.spentBudget.toInt()}€ / ${viaje.totalBudget.toInt()}€", fontSize = if (isFirst) 14.sp else 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                         }
-                        LinearProgressIndicator(
-                            progress = { progress },
-                            modifier = Modifier.fillMaxWidth().height(if (isFirst) 8.dp else 4.dp).clip(CircleShape),
-                            color = mambaNeon,
-                            trackColor = if (isFirst) Color.White else Color.LightGray.copy(alpha = 0.5f)
-                        )
+                        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(if (isFirst) 8.dp else 4.dp).clip(CircleShape), color = mambaNeon, trackColor = if (isFirst) MaterialTheme.colorScheme.background else Color.LightGray.copy(alpha = 0.2f))
                     }
                 }
             }
@@ -224,62 +121,39 @@ fun MainContent(paddingValues: PaddingValues, trips: List<Trip>, onTripClick: (S
 
 @Composable
 fun HomeBottomActionIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .clickable { onClick() }
-            .padding(8.dp)
-    ) {
-        Icon(icon, contentDescription = label, tint = Color.Gray, modifier = Modifier.size(28.dp))
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onClick() }.padding(8.dp)) {
+        Icon(icon, null, tint = Color.Gray, modifier = Modifier.size(28.dp))
         Spacer(modifier = Modifier.height(4.dp))
         Text(label, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
     }
 }
 
 @Composable
-fun ProfileSheetContent(
-    color: Color,
-    onTermsClick: () -> Unit,
-    onAboutClick: () -> Unit,
-    onSettingsClick: () -> Unit,
-    onAppSettingsClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp).padding(bottom = 32.dp)
-    ) {
+fun ProfileSheetContent(color: Color, isDarkTheme: Boolean, onTermsClick: () -> Unit, onAboutClick: () -> Unit, onSettingsClick: () -> Unit, onAppSettingsClick: () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp).padding(bottom = 32.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp)) {
-            Icon(Icons.Default.AccountCircle, contentDescription = null, modifier = Modifier.size(64.dp), tint = color)
+            Icon(Icons.Default.AccountCircle, null, modifier = Modifier.size(64.dp), tint = color)
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(text = "Izan Jaén", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
-                Text(text = "MAMBA ELITE MEMBER", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = color, letterSpacing = 1.sp)
+                Text(text = "Izan Jaén", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = stringResource(R.string.mamba_elite), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = color, letterSpacing = 1.sp)
             }
         }
-
         HorizontalDivider(color = Color.LightGray.copy(alpha = 0.3f), modifier = Modifier.padding(bottom = 16.dp))
-
-        ProfileMenuItem(icon = Icons.Default.Settings, text = "Ajustes de Usuario", color = color, onClick = onSettingsClick)
-
-        ProfileMenuItem(icon = Icons.Default.People, text = "Sobre Nosotros", color = color, onClick = onAboutClick)
-
-        ProfileMenuItem(icon = Icons.Default.AssignmentTurnedIn, text = "Términos y Condiciones", color = color, onClick = onTermsClick)
-        ProfileMenuItem(icon = Icons.Default.Build, text = "Ajustes de App", color = color, onClick = onAppSettingsClick)
+        ProfileMenuItem(icon = Icons.Default.Settings, text = stringResource(R.string.user_settings), color = color, onClick = onSettingsClick)
+        ProfileMenuItem(icon = Icons.Default.People, text = stringResource(R.string.about_us), color = color, onClick = onAboutClick)
+        ProfileMenuItem(icon = Icons.Default.AssignmentTurnedIn, text = stringResource(R.string.terms), color = color, onClick = onTermsClick)
+        ProfileMenuItem(icon = Icons.Default.Build, text = stringResource(R.string.app_settings), color = color, onClick = onAppSettingsClick)
     }
 }
 
 @Composable
 fun ProfileMenuItem(icon: ImageVector, text: String, color: Color, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
+    Row(modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, null, tint = color, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
-        Text(text, fontWeight = FontWeight.Medium, fontSize = 16.sp)
+        Text(text, fontWeight = FontWeight.Medium, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.weight(1f))
-        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.LightGray)
+        Icon(Icons.Default.ChevronRight, null, tint = Color.LightGray)
     }
 }
