@@ -75,7 +75,7 @@ class MainActivity : ComponentActivity() {
                         composable("home") {
                             HomeScreen(
                                 viewModel = tripListViewModel,
-                                onTripClick = { dest -> navController.navigate("details/$dest") },
+                                onTripClick = { tripId -> navController.navigate("details/$tripId") },
                                 onAddTripClick = { navController.navigate("add_trip") },
                                 isDarkTheme = isDarkTheme,
                                 onGalleryClick = { navController.navigate("gallery") },
@@ -88,10 +88,12 @@ class MainActivity : ComponentActivity() {
 
                         composable("details/{dest}") { backStackEntry ->
                             val dest = backStackEntry.arguments?.getString("dest") ?: ""
+                            val trip = tripListViewModel.trips.value.find { it.id == dest }
                             TripDetailScreen(
-                                destination = dest,
+                                destination = trip?.title ?: dest,  // el título para mostrar
+                                tripId = dest,                       // el id real para la DB
                                 viewModel = activityViewModel,
-                                tripViewModel = tripListViewModel, // <--- AÑADIMOS ESTO
+                                tripViewModel = tripListViewModel,
                                 onBack = { navController.popBackStack() },
                                 onAddActivityClick = { navController.navigate("add_activity/$dest") },
                                 onGalleryClick = { navController.navigate("gallery/$dest") },

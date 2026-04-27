@@ -1,4 +1,4 @@
-    package com.example.mambajet.domain
+package com.example.mambajet.domain
 
 import java.util.Date
 

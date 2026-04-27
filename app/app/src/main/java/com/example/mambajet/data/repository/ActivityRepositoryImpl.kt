@@ -1,24 +1,28 @@
 package com.example.mambajet.data.repository
 
-import com.example.mambajet.data.fakeDB.FakeActivityDataSource
+import com.example.mambajet.data.local.db.dao.ActivityDao
+import com.example.mambajet.data.local.db.mapper.toDomain
+import com.example.mambajet.data.local.db.mapper.toEntity
 import com.example.mambajet.domain.Activity
 import com.example.mambajet.domain.ActivityRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-class ActivityRepositoryImpl : ActivityRepository {
+class ActivityRepositoryImpl(private val activityDao: ActivityDao) : ActivityRepository {
 
-    override fun getActivitiesForTrip(tripId: String): List<Activity> {
-        return FakeActivityDataSource.getActivitiesForTrip(tripId)
+    override fun getActivitiesForTripFlow(tripId: String): Flow<List<Activity>> {
+        return activityDao.getActivitiesForTrip(tripId).map { list -> list.map { it.toDomain() } }
     }
 
-    override fun addActivity(activity: Activity) {
-        FakeActivityDataSource.addActivity(activity)
+    override suspend fun addActivity(activity: Activity) {
+        activityDao.insertActivity(activity.toEntity())
     }
 
-    override fun updateActivity(activity: Activity) {
-        FakeActivityDataSource.updateActivity(activity)
+    override suspend fun updateActivity(activity: Activity) {
+        activityDao.updateActivity(activity.toEntity())
     }
 
-    override fun deleteActivity(activityId: String) {
-        FakeActivityDataSource.deleteActivity(activityId)
+    override suspend fun deleteActivity(activityId: String) {
+        activityDao.deleteActivityById(activityId)
     }
 }

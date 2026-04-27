@@ -29,7 +29,7 @@ import com.example.mambajet.ui.viewmodels.TripListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TripDetailScreen(destination: String, viewModel: ActivityViewModel, tripViewModel: TripListViewModel, onBack: () -> Unit, onAddActivityClick: () -> Unit, onGalleryClick: () -> Unit, onMapClick: () -> Unit, onAIClick: () -> Unit, onDeleteConfirm: () -> Unit, onEditTripClick: () -> Unit, onEditActivityClick: (String) -> Unit) {
+fun TripDetailScreen(destination: String, tripId: String,  viewModel: ActivityViewModel, tripViewModel: TripListViewModel, onBack: () -> Unit, onAddActivityClick: () -> Unit, onGalleryClick: () -> Unit, onMapClick: () -> Unit, onAIClick: () -> Unit, onDeleteConfirm: () -> Unit, onEditTripClick: () -> Unit, onEditActivityClick: (String) -> Unit) {
     val mambaNeon = Color(0xFF2DB300)
     val dangerRed = Color(0xFFFF3B30)
     val aiAccent = Color(0xFFAF4B7C)
@@ -38,12 +38,12 @@ fun TripDetailScreen(destination: String, viewModel: ActivityViewModel, tripView
     var showDeleteTripDialog by remember { mutableStateOf(false) }
     var activityToDelete by remember { mutableStateOf<Activity?>(null) }
 
-    LaunchedEffect(destination) { viewModel.loadActivities(destination) }
+    LaunchedEffect(tripId) { viewModel.loadActivities(tripId) }
     val activities by viewModel.activities.collectAsState()
     val groupedActivities = activities.groupBy { it.date }
     LaunchedEffect(activities) {
         val totalCost = activities.sumOf { it.cost }
-        tripViewModel.updateTripBudget(destination, totalCost)
+        tripViewModel.updateTripBudget(tripId, totalCost)
     }
 
     Scaffold(

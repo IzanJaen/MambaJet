@@ -1,40 +1,42 @@
 package com.example.mambajet.data.repository
 
 import android.util.Log
-import com.example.mambajet.data.fakeDB.FakeTripDataSource
+import com.example.mambajet.data.local.db.dao.TripDao
+import com.example.mambajet.data.local.db.mapper.toDomain
+import com.example.mambajet.data.local.db.mapper.toEntity
 import com.example.mambajet.domain.Trip
 import com.example.mambajet.domain.TripRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-/**
- * Implementación de [TripRepository].
- * Actúa como única fuente de la verdad (Single Source of Truth) separando
- * la capa de dominio de la capa de acceso a datos.
- */
-class TripRepositoryImpl : TripRepository {
+class TripRepositoryImpl(private val tripDao: TripDao) : TripRepository {
 
     companion object {
         private const val TAG = "TripRepositoryImpl"
     }
 
-    override fun getTrips(): List<Trip> {
-        Log.d(TAG, "Delegando petición getTrips() al DataSource.")
-        return FakeTripDataSource.getTrips()
+    override fun getTripsFlow(): Flow<List<Trip>> {
+        Log.d(TAG, "Obteniendo viajes desde Room DB")
+        return tripDao.getAllTrips().map { list -> list.map { it.toDomain() } }
     }
 
-    override fun addTrip(trip: Trip) {
-        Log.d(TAG, "Delegando inserción de viaje al DataSource: ${trip.title}")
-        FakeTripDataSource.addTrip(trip)
+    override suspend fun addTrip(trip: Trip) {
+        Log.d(TAG, "Insertando viaje en Room DB: ${trip.title}")
+        tripDao.insertTrip(trip.toEntity())
     }
 
-    override fun editTrip(trip: Trip) {
-        FakeTripDataSource.editTrip(trip)
+    override suspend fun editTrip(trip: Trip) {
+        Log.d(TAG, "Actualizando viaje en Room DB: ${trip.title}")
+        tripDao.updateTrip(trip.toEntity())
     }
 
-    override fun deleteTrip(tripId: String) {
-        FakeTripDataSource.deleteTrip(tripId)
+    override suspend fun deleteTrip(tripId: String) {
+        Log.w(TAG, "Eliminando viaje de Room DB: $tripId")
+        tripDao.deleteTripById(tripId)
     }
 
-    override fun updateTripBudget(tripId: String, spent: Double) {
-        FakeTripDataSource.updateTripBudget(tripId, spent)
+    override suspend fun updateTripBudget(tripId: String, spent: Double) {
+        Log.d(TAG, "Actualizando presupuesto gastado para viaje: $tripId")
+        tripDao.updateSpentBudget(tripId, spent)
     }
 }

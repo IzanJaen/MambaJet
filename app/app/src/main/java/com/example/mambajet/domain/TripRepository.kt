@@ -1,9 +1,11 @@
 package com.example.mambajet.domain
 
+import kotlinx.coroutines.flow.Flow
+
 interface TripRepository {
-    fun getTrips(): List<Trip>
-    fun addTrip(trip: Trip)
-    fun editTrip(trip: Trip)
-    fun deleteTrip(tripId: String)
-    fun updateTripBudget(tripId: String, spent: Double)
+    fun getTripsFlow(): Flow<List<Trip>>
+    suspend fun addTrip(trip: Trip)
+    suspend fun editTrip(trip: Trip)
+    suspend fun deleteTrip(tripId: String)
+    suspend fun updateTripBudget(tripId: String, spent: Double)
 }

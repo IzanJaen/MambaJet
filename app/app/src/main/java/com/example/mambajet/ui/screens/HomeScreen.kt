@@ -92,7 +92,7 @@ fun MainContent(paddingValues: PaddingValues, trips: List<Trip>, onTripClick: (S
                 val progress = if (viaje.totalBudget > 0) (viaje.spentBudget / viaje.totalBudget).toFloat() else 0f
 
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).height(if (isFirst) 140.dp else 120.dp).clickable { onTripClick(viaje.title) },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).height(if (isFirst) 140.dp else 120.dp).clickable { onTripClick(viaje.id) },
                     colors = CardDefaults.cardColors(containerColor = if (isFirst) { if (isDarkTheme) Color(0xFF1B3D20) else Color(0xFFE8F5E9) } else { if (isDarkTheme) Color(0xFF1E1E1E) else Color(0xFFF8F9FA) }),
                     elevation = CardDefaults.cardElevation(if (isFirst) 4.dp else 1.dp)
                 ) {

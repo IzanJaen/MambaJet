@@ -1,113 +1,91 @@
 package com.example.mambajet.ui.viewmodels
 
+import android.app.Application
 import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.mambajet.data.local.db.AppDatabase
 import com.example.mambajet.data.repository.TripRepositoryImpl
 import com.example.mambajet.domain.Trip
 import com.example.mambajet.domain.TripRepository
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * [TripListViewModel] gestiona el estado de la UI para la lista de viajes.
- * Contiene la lógica de negocio y validación antes de interactuar con el Repositorio.
- */
-class TripListViewModel(private val repository: TripRepository = TripRepositoryImpl()) : ViewModel() {
+class TripListViewModel(application: Application) : AndroidViewModel(application) {
 
     companion object {
         private const val TAG = "TripListViewModel"
     }
-    // Backing property: Evita que la UI modifique el estado directamente.
-    private val _trips = MutableStateFlow<List<Trip>>(emptyList())
-    val trips: StateFlow<List<Trip>> = _trips.asStateFlow()
 
-    init {
-        Log.d(TAG, "ViewModel inicializado. Cargando viajes iniciales.")
-        loadTrips()
-    }
+    private val db = AppDatabase.getInstance(application)
+    private val repository: TripRepository = TripRepositoryImpl(db.tripDao())
 
-    /**
-     * Carga los viajes desde el repositorio y actualiza el StateFlow.
-     * Se utiliza .toList() para asegurar la inmutabilidad y forzar recomposición en Compose.
-     */
-    fun loadTrips() {
-        _trips.value = repository.getTrips().toList()
-        Log.d(TAG, "UI State actualizado con ${_trips.value.size} viajes.")
-    }
+    // Observa la DB en tiempo real. La UI se actualiza sola cuando cambia la BD.
+    val trips: StateFlow<List<Trip>> = repository.getTripsFlow()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
-    /**
-     * Intenta añadir un nuevo viaje tras validar los datos.
-     * @return true si la validación fue exitosa y se guardó, false si hubo error.
-     */
     fun addTrip(trip: Trip): Boolean {
-        Log.d(TAG, "Interacción de usuario: Intentando añadir viaje '${trip.title}'")
+        Log.d(TAG, "Intentando añadir viaje: ${trip.title}")
         if (!isValidTrip(trip)) {
-            Log.e(TAG, "Validación fallida al añadir el viaje: ${trip.title}")
+            Log.e(TAG, "Validación fallida para: ${trip.title}")
             return false
         }
-        repository.addTrip(trip)
-        loadTrips()
+        viewModelScope.launch {
+            repository.addTrip(trip)
+            Log.d(TAG, "Viaje guardado en DB: ${trip.title}")
+        }
         return true
     }
 
-    /**
-     * Intenta editar un viaje tras validar los datos.
-     */
     fun editTrip(trip: Trip): Boolean {
-        Log.d(TAG, "Interacción de usuario: Intentando editar viaje '${trip.title}'")
+        Log.d(TAG, "Intentando editar viaje: ${trip.title}")
         if (!isValidTrip(trip)) {
-            Log.e(TAG, "Validación fallida al editar el viaje: ${trip.title}")
+            Log.e(TAG, "Validación fallida al editar: ${trip.title}")
             return false
         }
-        repository.editTrip(trip)
-        loadTrips()
+        viewModelScope.launch {
+            repository.editTrip(trip)
+        }
         return true
     }
 
-    /**
-     * Elimina un viaje dado su ID y refresca el estado.
-     */
     fun deleteTrip(tripId: String) {
-        Log.w(TAG, "Interacción de usuario: Solicitud de eliminación para el viaje ID: $tripId")
-        repository.deleteTrip(tripId)
-        loadTrips()
+        Log.w(TAG, "Eliminando viaje ID: $tripId")
+        viewModelScope.launch {
+            repository.deleteTrip(tripId)
+        }
     }
 
-    /**
-     * Actualiza dinámicamente el presupuesto gastado (Usado desde el Itinerario).
-     */
     fun updateTripBudget(tripId: String, spent: Double) {
-        repository.updateTripBudget(tripId, spent)
-        loadTrips()
+        viewModelScope.launch {
+            repository.updateTripBudget(tripId, spent)
+        }
     }
 
-    /**
-     * Valida la integridad de un objeto Trip (Reglas de negocio).
-     * @param trip Objeto a validar.
-     * @return true si es válido, false si contiene campos vacíos o fechas ilógicas.
-     */
     private fun isValidTrip(trip: Trip): Boolean {
         if (trip.title.isBlank() || trip.startDate.isBlank() || trip.endDate.isBlank()) {
-            Log.e(TAG, "Comportamiento inesperado: Campos obligatorios vacíos detectados.")
+            Log.e(TAG, "Campos obligatorios vacíos")
             return false
         }
-
         val start = parseDate(trip.startDate)
         val end = parseDate(trip.endDate)
-
         if (start == null || end == null) {
-            Log.e(TAG, "Comportamiento inesperado: Formato de fecha incorrecto.")
+            Log.e(TAG, "Formato de fecha incorrecto")
             return false
         }
         if (end.before(start)) {
-            Log.e(TAG, "Comportamiento inesperado: La fecha de fin (${trip.endDate}) es anterior al inicio (${trip.startDate}).")
+            Log.e(TAG, "Fecha fin anterior a fecha inicio")
             return false
         }
-
         return true
     }
 
@@ -115,7 +93,6 @@ class TripListViewModel(private val repository: TripRepository = TripRepositoryI
         return try {
             SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(dateStr)
         } catch (e: Exception) {
-            Log.e(TAG, "Excepción al parsear la fecha: $dateStr", e)
             null
         }
     }

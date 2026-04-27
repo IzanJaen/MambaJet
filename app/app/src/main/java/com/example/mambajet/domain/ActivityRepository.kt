@@ -1,8 +1,10 @@
 package com.example.mambajet.domain
 
+import kotlinx.coroutines.flow.Flow
+
 interface ActivityRepository {
-    fun getActivitiesForTrip(tripId: String): List<Activity>
-    fun addActivity(activity: Activity)
-    fun updateActivity(activity: Activity)
-    fun deleteActivity(activityId: String)
+    fun getActivitiesForTripFlow(tripId: String): Flow<List<Activity>>
+    suspend fun addActivity(activity: Activity)
+    suspend fun updateActivity(activity: Activity)
+    suspend fun deleteActivity(activityId: String)
 }
