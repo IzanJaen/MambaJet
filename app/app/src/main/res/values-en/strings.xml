@@ -103,4 +103,13 @@
     <string name="mission_captures">Mission Captures</string>
     <string name="captures_count">%1$d CAPTURES</string>
     <string name="select_trip">Select a trip</string>
+
+    <string name="login_welcome_title">Welcome to MambaJet</string>
+    <string name="login_subtitle">Sign in to continue</string>
+    <string name="login_email_label">Email Address</string>
+    <string name="login_password_label">Password</string>
+    <string name="login_button">SIGN IN</string>
+    <string name="login_register_prompt">Don\'t have an account? Register here</string>
+    <string name="login_email_icon_desc">Email Icon</string>
+    <string name="login_password_icon_desc">Password Icon</string>
 </resources>

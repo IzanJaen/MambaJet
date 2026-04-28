@@ -103,4 +103,13 @@
     <string name="mission_captures">Captures de Missió</string>
     <string name="captures_count">%1$d CAPTURES</string>
     <string name="select_trip">Selecciona un viatge</string>
+
+    <string name="login_welcome_title">Benvingut a MambaJet</string>
+    <string name="login_subtitle">Inicia sessió per continuar</string>
+    <string name="login_email_label">Correu Electrònic</string>
+    <string name="login_password_label">Contrasenya</string>
+    <string name="login_button">INICIAR SESSIÓ</string>
+    <string name="login_register_prompt">No tens compte? Registra\'t aquí</string>
+    <string name="login_email_icon_desc">Icona de correu electrònic</string>
+    <string name="login_password_icon_desc">Icona de contrasenya</string>
 </resources>

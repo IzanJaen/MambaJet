@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
@@ -21,7 +22,9 @@ import com.example.mambajet.ui.screens.*
 import com.example.mambajet.ui.theme.MambaJetTheme
 import com.example.mambajet.ui.viewmodels.TripListViewModel
 import com.example.mambajet.ui.viewmodels.ActivityViewModel
-import com.example.mambajet.ui.viewmodels.SettingsViewModel // NUEVA IMPORTACIÓN
+import com.example.mambajet.ui.viewmodels.SettingsViewModel
+import com.example.mambajet.ui.viewmodels.AuthViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 import java.util.Locale // NO OLVIDES ESTE IMPORT
 
@@ -33,6 +36,7 @@ class MainActivity : ComponentActivity() {
     private val tripListViewModel: TripListViewModel by viewModels()
     private val activityViewModel: ActivityViewModel by viewModels()
     private val settingsViewModel: SettingsViewModel by viewModels()
+    private val authViewModel: AuthViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -62,6 +66,13 @@ class MainActivity : ComponentActivity() {
             // 2. SEGUNDO: Escuchamos el Modo Oscuro
             val isDarkTheme by settingsViewModel.isDarkMode.collectAsState()
 
+
+            val user = remember { FirebaseAuth.getInstance().currentUser }
+            val startRoute = if (user != null) "home" else "login"
+
+            android.util.Log.d("MambaJet_Nav", "Usuario actual: ${user?.email ?: "Nadie"}")
+            android.util.Log.d("MambaJet_Nav", "Ruta de inicio decidida: $startRoute")
+
             // 3. TERCERO: Aplicamos el Tema
             MambaJetTheme(darkTheme = isDarkTheme) {
                 Surface(
@@ -70,7 +81,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NavHost(
                         navController = navController, // Usamos el de arriba
-                        startDestination = "home"
+                        startDestination = startRoute
                     ) {
                         composable("home") {
                             HomeScreen(
@@ -106,6 +117,21 @@ class MainActivity : ComponentActivity() {
                                 onEditTripClick = { navController.navigate("edit_trip/$dest") },
                                 onEditActivityClick = { activityId ->
                                     navController.navigate("edit_activity/$activityId")
+                                }
+                            )
+                        }
+                        composable("login") {
+                            LoginScreen(
+                                viewModel = authViewModel,
+                                onLoginSuccess = {
+                                    // T2.3: Redirigir al Home tras login exitoso
+                                    navController.navigate("home") {
+                                        // Borramos el login del historial para que no pueda volver atrás
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToRegister = {
+                                    // navController.navigate("register") // Tarea T3
                                 }
                             )
                         }
@@ -192,10 +218,11 @@ class MainActivity : ComponentActivity() {
                         // --- NUESTRAS RUTAS DE SETTINGS ACTUALIZADAS ---
                         composable("settings") {
                             UserSettingsScreen(
-                                viewModel = settingsViewModel, // Pasamos el ViewModel
+                                viewModel = settingsViewModel,
                                 onBack = { navController.popBackStack() },
                                 onLogout = {
-                                    navController.navigate("home") {
+                                    authViewModel.logout() // T2.4: Cerrar sesión en Firebase
+                                    navController.navigate("login") {
                                         popUpTo("home") { inclusive = true }
                                     }
                                 }
