@@ -16,8 +16,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-
-import com.example.mambajet.data.repository.TripRepositoryImpl
 import com.example.mambajet.ui.screens.*
 import com.example.mambajet.ui.theme.MambaJetTheme
 import com.example.mambajet.ui.viewmodels.TripListViewModel
@@ -25,14 +23,12 @@ import com.example.mambajet.ui.viewmodels.ActivityViewModel
 import com.example.mambajet.ui.viewmodels.SettingsViewModel
 import com.example.mambajet.ui.viewmodels.AuthViewModel
 import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.AndroidEntryPoint
+import java.util.Locale
 
-import java.util.Locale // NO OLVIDES ESTE IMPORT
-
-
-
+@AndroidEntryPoint   // <-- ESTO ES LO QUE CAMBIA AQUÍ
 class MainActivity : ComponentActivity() {
 
-    // Así de limpio queda ahora:
     private val tripListViewModel: TripListViewModel by viewModels()
     private val activityViewModel: ActivityViewModel by viewModels()
     private val settingsViewModel: SettingsViewModel by viewModels()
@@ -41,7 +37,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
 
-        // --- TAREA 1.5: CARGAR IDIOMA GUARDADO AL INICIAR ---
         val prefs = getSharedPreferences("MambaJetPrefs", MODE_PRIVATE)
         val savedLang = prefs.getString("language", "Castellano") ?: "Castellano"
         val localeCode = when (savedLang) {
@@ -54,18 +49,13 @@ class MainActivity : ComponentActivity() {
         val config = resources.configuration
         config.setLocale(locale)
         resources.updateConfiguration(config, resources.displayMetrics)
-        // ----------------------------------------------------
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContent {
-            // 1. PRIMERO: Creamos el navController (Fuera del tema)
             val navController = rememberNavController()
-
-            // 2. SEGUNDO: Escuchamos el Modo Oscuro
             val isDarkTheme by settingsViewModel.isDarkMode.collectAsState()
-
 
             val user = remember { FirebaseAuth.getInstance().currentUser }
             val startRoute = if (user != null) "home" else "login"
@@ -73,14 +63,13 @@ class MainActivity : ComponentActivity() {
             android.util.Log.d("MambaJet_Nav", "Usuario actual: ${user?.email ?: "Nadie"}")
             android.util.Log.d("MambaJet_Nav", "Ruta de inicio decidida: $startRoute")
 
-            // 3. TERCERO: Aplicamos el Tema
             MambaJetTheme(darkTheme = isDarkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     NavHost(
-                        navController = navController, // Usamos el de arriba
+                        navController = navController,
                         startDestination = startRoute
                     ) {
                         composable("home") {
@@ -101,8 +90,8 @@ class MainActivity : ComponentActivity() {
                             val dest = backStackEntry.arguments?.getString("dest") ?: ""
                             val trip = tripListViewModel.trips.value.find { it.id == dest }
                             TripDetailScreen(
-                                destination = trip?.title ?: dest,  // el título para mostrar
-                                tripId = dest,                       // el id real para la DB
+                                destination = trip?.title ?: dest,
+                                tripId = dest,
                                 viewModel = activityViewModel,
                                 tripViewModel = tripListViewModel,
                                 onBack = { navController.popBackStack() },
@@ -120,19 +109,16 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+
                         composable("login") {
                             LoginScreen(
                                 viewModel = authViewModel,
                                 onLoginSuccess = {
-                                    // T2.3: Redirigir al Home tras login exitoso
                                     navController.navigate("home") {
-                                        // Borramos el login del historial para que no pueda volver atrás
                                         popUpTo("login") { inclusive = true }
                                     }
                                 },
-                                onNavigateToRegister = {
-                                    // navController.navigate("register") // Tarea T3
-                                }
+                                onNavigateToRegister = { }
                             )
                         }
 
@@ -141,27 +127,23 @@ class MainActivity : ComponentActivity() {
                             val trip = tripListViewModel.trips.value.find { it.id == dest || it.title == dest }
                             val tStart = trip?.startDate ?: ""
                             val tEnd = trip?.endDate ?: ""
-
                             AddActivityScreen(
                                 tripId = dest,
                                 tripStartDate = tStart,
                                 tripEndDate = tEnd,
                                 onBack = { navController.popBackStack() },
                                 onActivitySaved = { newActivity ->
-                                    // CAMBIO: Enviamos las fechas al ViewModel para validación
                                     activityViewModel.addActivity(newActivity, tStart, tEnd)
                                 }
                             )
                         }
 
-                        // 4. Editar Actividad
                         composable("edit_activity/{activityId}") { backStackEntry ->
                             val activityId = backStackEntry.arguments?.getString("activityId") ?: ""
                             val activityToEdit = activityViewModel.activities.value.find { it.id == activityId }
                             val trip = tripListViewModel.trips.value.find { it.id == activityToEdit?.tripId || it.title == activityToEdit?.tripId }
                             val tStart = trip?.startDate ?: ""
                             val tEnd = trip?.endDate ?: ""
-
                             EditActivityScreen(
                                 activityId = activityId,
                                 tripStartDate = tStart,
@@ -169,7 +151,6 @@ class MainActivity : ComponentActivity() {
                                 viewModel = activityViewModel,
                                 onBack = { navController.popBackStack() },
                                 onActivityUpdated = { updatedActivity ->
-                                    // CAMBIO: Enviamos las fechas al ViewModel para validación
                                     activityViewModel.updateActivity(updatedActivity, tStart, tEnd)
                                 }
                             )
@@ -187,7 +168,6 @@ class MainActivity : ComponentActivity() {
                         composable("edit_trip/{dest}") { backStackEntry ->
                             val dest = backStackEntry.arguments?.getString("dest") ?: ""
                             val tripToEdit = tripListViewModel.trips.value.find { it.title == dest || it.id == dest }
-
                             if (tripToEdit != null) {
                                 EditTripScreen(
                                     tripToEdit = tripToEdit,
@@ -199,7 +179,6 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // ... Resto de rutas
                         composable("gallery") { GalleryScreen(tripDestination = null, onBack = { navController.popBackStack() }) }
                         composable("gallery/{dest}") { backStackEntry ->
                             GalleryScreen(tripDestination = backStackEntry.arguments?.getString("dest"), onBack = { navController.popBackStack() })
@@ -215,13 +194,12 @@ class MainActivity : ComponentActivity() {
                             AIRecommendationsScreen(destination = dest, onBack = { navController.popBackStack() })
                         }
 
-                        // --- NUESTRAS RUTAS DE SETTINGS ACTUALIZADAS ---
                         composable("settings") {
                             UserSettingsScreen(
                                 viewModel = settingsViewModel,
                                 onBack = { navController.popBackStack() },
                                 onLogout = {
-                                    authViewModel.logout() // T2.4: Cerrar sesión en Firebase
+                                    authViewModel.logout()
                                     navController.navigate("login") {
                                         popUpTo("home") { inclusive = true }
                                     }
@@ -231,7 +209,7 @@ class MainActivity : ComponentActivity() {
 
                         composable("app_settings") {
                             AppSettingsScreen(
-                                viewModel = settingsViewModel, // Pasamos el ViewModel
+                                viewModel = settingsViewModel,
                                 onBack = { navController.popBackStack() }
                             )
                         }

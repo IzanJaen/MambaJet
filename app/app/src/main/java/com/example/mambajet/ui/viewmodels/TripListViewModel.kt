@@ -1,13 +1,11 @@
 package com.example.mambajet.ui.viewmodels
 
-import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mambajet.data.local.db.AppDatabase
-import com.example.mambajet.data.repository.TripRepositoryImpl
 import com.example.mambajet.domain.Trip
 import com.example.mambajet.domain.TripRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -15,17 +13,17 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
-class TripListViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class TripListViewModel @Inject constructor(
+    private val repository: TripRepository
+) : ViewModel() {
 
     companion object {
         private const val TAG = "TripListViewModel"
     }
 
-    private val db = AppDatabase.getInstance(application)
-    private val repository: TripRepository = TripRepositoryImpl(db.tripDao())
-
-    // Observa la DB en tiempo real. La UI se actualiza sola cuando cambia la BD.
     val trips: StateFlow<List<Trip>> = repository.getTripsFlow()
         .stateIn(
             scope = viewModelScope,

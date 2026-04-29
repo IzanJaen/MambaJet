@@ -1,12 +1,10 @@
 package com.example.mambajet.ui.viewmodels
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mambajet.data.local.db.AppDatabase
-import com.example.mambajet.data.repository.ActivityRepositoryImpl
 import com.example.mambajet.domain.Activity
 import com.example.mambajet.domain.ActivityRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,11 +12,12 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
-class ActivityViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val db = AppDatabase.getInstance(application)
-    private val repository: ActivityRepository = ActivityRepositoryImpl(db.activityDao())
+@HiltViewModel
+class ActivityViewModel @Inject constructor(
+    private val repository: ActivityRepository
+) : ViewModel() {
 
     private val _activities = MutableStateFlow<List<Activity>>(emptyList())
     val activities: StateFlow<List<Activity>> = _activities.asStateFlow()

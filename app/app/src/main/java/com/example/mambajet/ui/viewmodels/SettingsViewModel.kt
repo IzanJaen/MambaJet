@@ -1,17 +1,22 @@
 package com.example.mambajet.ui.viewmodels
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import android.content.Context
+import androidx.lifecycle.ViewModel
 import com.example.mambajet.data.local.PreferencesManager
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
+    @ApplicationContext context: Context
+) : ViewModel() {
 
-    private val prefsManager = PreferencesManager(application)
+    private val prefsManager = PreferencesManager(context)
 
-    // Cargamos los valores iniciales directamente de la memoria física
     private val _username = MutableStateFlow(prefsManager.getUsername())
     val username: StateFlow<String> = _username.asStateFlow()
 
@@ -24,7 +29,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _language = MutableStateFlow(prefsManager.getLanguage())
     val language: StateFlow<String> = _language.asStateFlow()
 
-    // Funciones para actualizar estado y guardar en disco a la vez
     fun updateUsername(newName: String) {
         _username.value = newName
         prefsManager.saveUsername(newName)
