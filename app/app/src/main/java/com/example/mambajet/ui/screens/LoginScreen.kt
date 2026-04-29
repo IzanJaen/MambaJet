@@ -10,10 +10,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource // NUEVA IMPORTACIÓN
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.mambajet.R // NUEVA IMPORTACIÓN DE TUS RECURSOS
+import com.example.mambajet.R
 import com.example.mambajet.ui.viewmodels.AuthState
 import com.example.mambajet.ui.viewmodels.AuthViewModel
 
@@ -22,18 +22,17 @@ import com.example.mambajet.ui.viewmodels.AuthViewModel
 fun LoginScreen(
     viewModel: AuthViewModel,
     onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // Observamos el estado del login
     val authState by viewModel.authState.collectAsState()
 
-    // Navegamos al Home cuando el login es exitoso
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
-            viewModel.resetState() // Reseteamos el estado para no causar re-navegaciones
+            viewModel.resetState()
             onLoginSuccess()
         }
     }
@@ -64,13 +63,11 @@ fun LoginScreen(
             onValueChange = { email = it },
             label = { Text(stringResource(id = R.string.login_email_label)) },
             leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Email,
-                    contentDescription = stringResource(id = R.string.login_email_icon_desc)
-                )
+                Icon(imageVector = Icons.Default.Email, contentDescription = null)
             },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            singleLine = true
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -80,31 +77,41 @@ fun LoginScreen(
             onValueChange = { password = it },
             label = { Text(stringResource(id = R.string.login_password_label)) },
             leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = stringResource(id = R.string.login_password_icon_desc)
-                )
+                Icon(imageVector = Icons.Default.Lock, contentDescription = null)
             },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        // Enlace "¿Olvidaste tu contraseña?"
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+            TextButton(onClick = onNavigateToForgotPassword) {
+                Text(
+                    text = stringResource(id = R.string.login_forgot_password),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
 
-        // Mostrar mensajes de error
+        Spacer(modifier = Modifier.height(8.dp))
+
         if (authState is AuthState.Error) {
             Text(
                 text = (authState as AuthState.Error).message,
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
         }
 
         Button(
             onClick = { viewModel.login(email, password) },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
             shape = RoundedCornerShape(12.dp),
             enabled = authState !is AuthState.Loading
         ) {

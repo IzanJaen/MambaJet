@@ -112,4 +112,23 @@
     <string name="login_register_prompt">Don\'t have an account? Register here</string>
     <string name="login_email_icon_desc">Email Icon</string>
     <string name="login_password_icon_desc">Password Icon</string>
+    <!-- Register -->
+    <string name="register_title">Create Account</string>
+    <string name="register_subtitle">Enter your details to register</string>
+    <string name="register_button">CREATE ACCOUNT</string>
+    <string name="register_confirm_password">Confirm Password</string>
+    <string name="register_password_hint">Minimum 6 characters</string>
+    <string name="register_already_account">Already have an account? Sign in</string>
+    <string name="register_success_title">Registration successful!</string>
+    <string name="register_success_msg">We have sent you a verification email. Please check your inbox and confirm your account before signing in.</string>
+    <string name="register_success_ok">GOT IT</string>
+
+    <!-- Forgot Password -->
+    <string name="login_forgot_password">Forgot your password?</string>
+    <string name="forgot_title">Recover Password</string>
+    <string name="forgot_subtitle">Enter your email and we will send you a link to reset your password.</string>
+    <string name="forgot_button">SEND LINK</string>
+    <string name="forgot_back_to_login">Back to sign in</string>
+    <string name="forgot_success_title">Email sent</string>
+    <string name="forgot_success_msg">Check your inbox. If the email exists in our system, you will receive a link to reset your password.</string>
 </resources>

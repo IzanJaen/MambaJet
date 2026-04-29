@@ -118,7 +118,12 @@ class MainActivity : ComponentActivity() {
                                         popUpTo("login") { inclusive = true }
                                     }
                                 },
-                                onNavigateToRegister = { }
+                                onNavigateToRegister = {
+                                    navController.navigate("register")   // AÑADIR ESTA LÍNEA
+                                },
+                                onNavigateToForgotPassword = {
+                                    navController.navigate("forgot_password")   // AÑADIR ESTA LÍNEA
+                                }
                             )
                         }
 
@@ -210,6 +215,25 @@ class MainActivity : ComponentActivity() {
                         composable("app_settings") {
                             AppSettingsScreen(
                                 viewModel = settingsViewModel,
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable("register") {
+                            RegisterScreen(
+                                viewModel = authViewModel,
+                                onRegisterSuccess = {
+                                    navController.navigate("login") {
+                                        popUpTo("register") { inclusive = true }
+                                    }
+                                },
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+
+// AÑADIR ESTA RUTA nueva:
+                        composable("forgot_password") {
+                            ForgotPasswordScreen(
+                                viewModel = authViewModel,
                                 onBack = { navController.popBackStack() }
                             )
                         }
