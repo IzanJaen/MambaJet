@@ -4,23 +4,34 @@ import android.content.Context
 import android.content.SharedPreferences
 
 class PreferencesManager(context: Context) {
-    // Creamos el archivo físico de preferencias
+
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("MambaJetPrefs", Context.MODE_PRIVATE)
 
-    // USERNAME
-    fun saveUsername(name: String) = sharedPreferences.edit().putString("username", name).apply()
-    fun getUsername(): String = sharedPreferences.getString("username", "Izan Jaén") ?: "Izan Jaén"
+    // ── Claves con UID para que cada usuario tenga sus propios datos ──────────
+    private fun key(uid: String, field: String) = "${uid}_${field}"
 
-    // DATE OF BIRTH (Texto)
-    fun saveDateOfBirth(dob: String) = sharedPreferences.edit().putString("dob", dob).apply()
-    fun getDateOfBirth(): String = sharedPreferences.getString("dob", "01/01/2000") ?: "01/01/2000"
+    // USERNAME (por usuario)
+    fun saveUsername(uid: String, name: String) =
+        sharedPreferences.edit().putString(key(uid, "username"), name).apply()
+    fun getUsername(uid: String): String =
+        sharedPreferences.getString(key(uid, "username"), "") ?: ""
 
-    // DARK MODE (Booleano)
-    fun saveDarkMode(isDark: Boolean) = sharedPreferences.edit().putBoolean("dark_mode", isDark).apply()
-    fun isDarkMode(): Boolean = sharedPreferences.getBoolean("dark_mode", false)
+    // DATE OF BIRTH (por usuario)
+    fun saveDateOfBirth(uid: String, dob: String) =
+        sharedPreferences.edit().putString(key(uid, "dob"), dob).apply()
+    fun getDateOfBirth(uid: String): String =
+        sharedPreferences.getString(key(uid, "dob"), "") ?: ""
 
-    // APPLICATION LANGUAGE
-    fun saveLanguage(lang: String) = sharedPreferences.edit().putString("language", lang).apply()
-    fun getLanguage(): String = sharedPreferences.getString("language", "Castellano") ?: "Castellano"
+    // DARK MODE (global, no depende del usuario)
+    fun saveDarkMode(isDark: Boolean) =
+        sharedPreferences.edit().putBoolean("dark_mode", isDark).apply()
+    fun isDarkMode(): Boolean =
+        sharedPreferences.getBoolean("dark_mode", false)
+
+    // APPLICATION LANGUAGE (global)
+    fun saveLanguage(lang: String) =
+        sharedPreferences.edit().putString("language", lang).apply()
+    fun getLanguage(): String =
+        sharedPreferences.getString("language", "Castellano") ?: "Castellano"
 }

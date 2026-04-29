@@ -6,8 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.mambajet.domain.Trip
 import com.example.mambajet.domain.TripRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -24,12 +26,24 @@ class TripListViewModel @Inject constructor(
         private const val TAG = "TripListViewModel"
     }
 
-    val trips: StateFlow<List<Trip>> = repository.getTripsFlow()
+    // El userId activo — se setea desde MainActivity al navegar a home
+    private val _currentUserId = MutableStateFlow("")
+
+    val trips: StateFlow<List<Trip>> = _currentUserId
+        .flatMapLatest { uid ->
+            if (uid.isBlank()) repository.getTripsFlow()
+            else repository.getTripsByUser(uid)
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    fun setCurrentUser(userId: String) {
+        Log.d(TAG, "Usuario activo cambiado a: $userId")
+        _currentUserId.value = userId
+    }
 
     fun addTrip(trip: Trip): Boolean {
         Log.d(TAG, "Intentando añadir viaje: ${trip.title}")
@@ -37,9 +51,11 @@ class TripListViewModel @Inject constructor(
             Log.e(TAG, "Validación fallida para: ${trip.title}")
             return false
         }
+        // Asigna el userId actual al viaje
+        val tripWithUser = trip.copy(userId = _currentUserId.value)
         viewModelScope.launch {
-            repository.addTrip(trip)
-            Log.d(TAG, "Viaje guardado en DB: ${trip.title}")
+            repository.addTrip(tripWithUser)
+            Log.d(TAG, "Viaje guardado en DB: ${tripWithUser.title} para user: ${tripWithUser.userId}")
         }
         return true
     }

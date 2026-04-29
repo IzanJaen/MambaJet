@@ -7,6 +7,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TripDao {
 
+    /** T4.2 — Devuelve solo los viajes del usuario logueado. */
+    @Query("SELECT * FROM trips WHERE userId = :userId ORDER BY createdAt DESC")
+    fun getTripsByUser(userId: String): Flow<List<TripEntity>>
+
+    /** Mantener para compatibilidad / admin. */
     @Query("SELECT * FROM trips ORDER BY createdAt DESC")
     fun getAllTrips(): Flow<List<TripEntity>>
 

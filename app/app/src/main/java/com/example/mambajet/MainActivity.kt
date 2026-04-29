@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -73,8 +74,14 @@ class MainActivity : ComponentActivity() {
                         startDestination = startRoute
                     ) {
                         composable("home") {
+                            // Informar al ViewModel del usuario actual
+                            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                            LaunchedEffect(uid) {
+                                tripListViewModel.setCurrentUser(uid)
+                            }
                             HomeScreen(
                                 viewModel = tripListViewModel,
+                                settingsViewModel = settingsViewModel,
                                 onTripClick = { tripId -> navController.navigate("details/$tripId") },
                                 onAddTripClick = { navController.navigate("add_trip") },
                                 isDarkTheme = isDarkTheme,
@@ -200,6 +207,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("settings") {
+                            LaunchedEffect(Unit) { settingsViewModel.loadUserProfile() }
                             UserSettingsScreen(
                                 viewModel = settingsViewModel,
                                 onBack = { navController.popBackStack() },

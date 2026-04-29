@@ -21,6 +21,9 @@ import com.example.mambajet.R
 import com.example.mambajet.ui.viewmodels.SettingsViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +33,7 @@ fun UserSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit, onLogou
 
     val currentUsername by viewModel.username.collectAsState()
     val currentDob by viewModel.dateOfBirth.collectAsState()
+    val currentEmail by viewModel.email.collectAsState()
 
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showEditNameDialog by remember { mutableStateOf(false) }
@@ -66,8 +70,7 @@ fun UserSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit, onLogou
                     ProfileFieldItem(stringResource(R.string.dob), currentDob, mambaNeon) { showDatePicker = true }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = Color.LightGray.copy(alpha = 0.2f))
 
-                    ProfileFieldItem(stringResource(R.string.email), "izan@mambajet.com", mambaNeon) { }
-                }
+                    ProfileFieldItem(stringResource(R.string.email), currentEmail.ifBlank { "—" }, mambaNeon) { }                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -88,6 +91,29 @@ fun UserSettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit, onLogou
                 dismissButton = { TextButton(onClick = { showEditNameDialog = false }) { Text(stringResource(R.string.cancel), color = Color.Gray) } },
                 containerColor = MaterialTheme.colorScheme.surface
             )
+        }
+
+        if (showDatePicker) {
+            val datePickerState = rememberDatePickerState()
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val sdf = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+                            viewModel.updateDateOfBirth(sdf.format(java.util.Date(millis)))
+                        }
+                        showDatePicker = false
+                    }) { Text("OK", color = mambaNeon, fontWeight = FontWeight.Bold) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text(stringResource(R.string.cancel), color = Color.Gray)
+                    }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
         }
 
         if (showLogoutDialog) {

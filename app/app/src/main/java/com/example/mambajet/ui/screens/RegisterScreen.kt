@@ -31,6 +31,12 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    var birthdate by remember { mutableStateOf(0L) }
+    var address by remember { mutableStateOf("") }
+    var country by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var acceptEmails by remember { mutableStateOf(false) }
 
     // Diálogo de éxito: le decimos que revise el email
     var showSuccessDialog by remember { mutableStateOf(false) }
@@ -136,6 +142,76 @@ fun RegisterScreen(
                 singleLine = true
             )
 
+            // Username
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = username,
+                onValueChange = { username = it },
+                label = { Text("Nombre de usuario") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
+            )
+
+// Fecha de nacimiento (puedes usar un simple campo de texto o un DatePicker)
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = if (birthdate == 0L) "" else java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(java.util.Date(birthdate)),
+                onValueChange = { /* gestiona con DatePicker */ },
+                label = { Text("Fecha de nacimiento") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                readOnly = true
+            )
+
+// Dirección
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = address,
+                onValueChange = { address = it },
+                label = { Text("Dirección") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
+            )
+
+// País
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = country,
+                onValueChange = { country = it },
+                label = { Text("País") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
+            )
+
+// Teléfono
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = phone,
+                onValueChange = { phone = it },
+                label = { Text("Teléfono") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
+            )
+
+// Aceptar emails
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Checkbox(
+                    checked = acceptEmails,
+                    onCheckedChange = { acceptEmails = it }
+                )
+                Text("Aceptar recibir correos promocionales")
+            }
+
+
             Spacer(modifier = Modifier.height(24.dp))
 
             if (registerState is AuthState.Error) {
@@ -149,7 +225,19 @@ fun RegisterScreen(
             }
 
             Button(
-                onClick = { viewModel.register(email, password, confirmPassword) },
+                onClick = {
+                    viewModel.register(
+                        email = email,
+                        password = password,
+                        confirmPassword = confirmPassword,
+                        username = username,
+                        birthdate = birthdate,
+                        address = address,
+                        country = country,
+                        phone = phone,
+                        acceptEmails = acceptEmails
+                    )
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),

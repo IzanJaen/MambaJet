@@ -15,8 +15,14 @@ class TripRepositoryImpl(private val tripDao: TripDao) : TripRepository {
         private const val TAG = "TripRepositoryImpl"
     }
 
+    /** T4.2 — Solo los viajes del usuario logueado. */
+    override fun getTripsByUser(userId: String): Flow<List<Trip>> {
+        Log.d(TAG, "Obteniendo viajes de userId: $userId")
+        return tripDao.getTripsByUser(userId).map { list -> list.map { it.toDomain() } }
+    }
+
     override fun getTripsFlow(): Flow<List<Trip>> {
-        Log.d(TAG, "Obteniendo viajes desde Room DB")
+        Log.d(TAG, "Obteniendo todos los viajes desde Room DB")
         return tripDao.getAllTrips().map { list -> list.map { it.toDomain() } }
     }
 

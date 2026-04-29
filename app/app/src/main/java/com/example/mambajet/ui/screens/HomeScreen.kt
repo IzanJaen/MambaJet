@@ -31,6 +31,7 @@ import com.example.mambajet.ui.viewmodels.TripListViewModel
 @Composable
 fun HomeScreen(
     viewModel: TripListViewModel,
+    settingsViewModel: com.example.mambajet.ui.viewmodels.SettingsViewModel,
     isDarkTheme: Boolean,
     onTripClick: (String) -> Unit,
     onAddTripClick: () -> Unit,
@@ -43,6 +44,8 @@ fun HomeScreen(
     val mambaNeon = Color(0xFF2DB300)
     var showProfileSheet by remember { mutableStateOf(false) }
     val trips by viewModel.trips.collectAsState()
+    val profileName by settingsViewModel.username.collectAsState()
+    val profileEmail by settingsViewModel.email.collectAsState()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -74,7 +77,8 @@ fun HomeScreen(
 
         if (showProfileSheet) {
             ModalBottomSheet(onDismissRequest = { showProfileSheet = false }, containerColor = MaterialTheme.colorScheme.surface, dragHandle = { BottomSheetDefaults.DragHandle(color = Color.LightGray) }) {
-                ProfileSheetContent(color = mambaNeon, isDarkTheme = isDarkTheme, onTermsClick = { showProfileSheet = false; onTermsClick() }, onAboutClick = { showProfileSheet = false; onAboutClick() }, onSettingsClick = { showProfileSheet = false; onSettingsClick() }, onAppSettingsClick = { showProfileSheet = false; onAppSettingsClick() })
+                ProfileSheetContent(color = mambaNeon, isDarkTheme = isDarkTheme, username = profileName.ifBlank { "Usuario" },
+                    email = profileEmail, onTermsClick = { showProfileSheet = false; onTermsClick() }, onAboutClick = { showProfileSheet = false; onAboutClick() }, onSettingsClick = { showProfileSheet = false; onSettingsClick() }, onAppSettingsClick = { showProfileSheet = false; onAppSettingsClick() })
             }
         }
     }
@@ -129,13 +133,13 @@ fun HomeBottomActionIcon(icon: ImageVector, label: String, onClick: () -> Unit) 
 }
 
 @Composable
-fun ProfileSheetContent(color: Color, isDarkTheme: Boolean, onTermsClick: () -> Unit, onAboutClick: () -> Unit, onSettingsClick: () -> Unit, onAppSettingsClick: () -> Unit) {
+fun ProfileSheetContent(color: Color, isDarkTheme: Boolean, username: String, email: String, onTermsClick: () -> Unit, onAboutClick: () -> Unit, onSettingsClick: () -> Unit, onAppSettingsClick: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp).padding(bottom = 32.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 24.dp)) {
             Icon(Icons.Default.AccountCircle, null, modifier = Modifier.size(64.dp), tint = color)
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(text = "Izan Jaén", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = username.ifBlank { "Usuario" }, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface)
                 Text(text = stringResource(R.string.mamba_elite), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = color, letterSpacing = 1.sp)
             }
         }
