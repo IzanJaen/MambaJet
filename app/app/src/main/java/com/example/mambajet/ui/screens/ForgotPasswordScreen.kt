@@ -96,7 +96,7 @@ fun ForgotPasswordScreen(
 
             if (resetState is AuthState.Error) {
                 Text(
-                    text = (resetState as AuthState.Error).message,
+                    text = stringResource(id = (resetState as AuthState.Error).messageResId),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center

@@ -87,23 +87,18 @@
     <string name="terms_2_body">Les teves dades de viatge es guarden localment per a la teva privacitat...</string>
     <string name="terms_3_title">3. Recomanacions IA</string>
     <string name="terms_3_body">MambaJet no es responsabilitza de la precisió de la IA...</string>
-
     <string name="about_us_uppercase">SOBRE NOSALTRES</string>
     <string name="dev_team">MambaJet Dev Team</string>
     <string name="version_text">Versió 2.1.0 (Memòria InMemory)</string>
     <string name="about_us_desc">MambaJet va néixer de la necessitat de simplificar la planificació de viatges grupals, integrant recomanacions intel·ligents i un seguiment de pressupost intuïtiu. Desenvolupat amb passió utilitzant Jetpack Compose.</string>
-
     <string name="optimization_for">Optimització per a %1$s</string>
     <string name="ask_suggestions">Demana suggeriments o analitza el teu pressupost restant.</string>
     <string name="ai_example_result">Ramen Ichiran a Shibuya. Cost estimat: 12€. Encaixa perfectament en el teu pressupost diari de 45€.</string>
-
     <string name="radar_title">RADAR: %1$s</string>
     <string name="radar_module">Mòdul de Radar</string>
-
     <string name="mission_captures">Captures de Missió</string>
     <string name="captures_count">%1$d CAPTURES</string>
     <string name="select_trip">Selecciona un viatge</string>
-
     <string name="login_welcome_title">Benvingut a MambaJet</string>
     <string name="login_subtitle">Inicia sessió per continuar</string>
     <string name="login_email_label">Correu Electrònic</string>
@@ -122,7 +117,7 @@
     <string name="register_success_title">Registre exitós!</string>
     <string name="register_success_msg">T\'hem enviat un correu de verificació. Si us plau revisa la teva bústia i confirma el compte abans d\'iniciar sessió.</string>
     <string name="register_success_ok">ENTÈS</string>
-
+    <string name="register_username_label">Nom d\'usuari</string>
     <!-- Forgot Password -->
     <string name="login_forgot_password">Has oblidat la contrasenya?</string>
     <string name="forgot_title">Recuperar Contrasenya</string>
@@ -131,4 +126,15 @@
     <string name="forgot_back_to_login">Tornar a l\'inici de sessió</string>
     <string name="forgot_success_title">Correu enviat</string>
     <string name="forgot_success_msg">Revisa la teva bústia. Si el correu existeix al nostre sistema, rebràs un enllaç per restablir la contrasenya.</string>
+    <!-- Auth errors -->
+    <string name="error_fields_empty">Els camps no poden estar buits.</string>
+    <string name="error_wrong_credentials">Correu o contrasenya incorrectes.</string>
+    <string name="error_user_not_found">No existeix cap compte amb aquest correu.</string>
+    <string name="error_email_in_use">Aquest correu ja està registrat.</string>
+    <string name="error_weak_password">La contrasenya ha de tenir mínim 6 caràcters.</string>
+    <string name="error_passwords_no_match">Les contrasenyes no coincideixen.</string>
+    <string name="error_invalid_email">El format del correu no és vàlid.</string>
+    <string name="error_username_taken">El nom d\'usuari ja està en ús.</string>
+    <string name="error_email_empty">Introdueix el teu correu electrònic.</string>
+    <string name="error_generic">S\'ha produït un error. Torna-ho a intentar.</string>
 </resources>

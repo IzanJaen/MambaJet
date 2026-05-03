@@ -27,7 +27,7 @@ import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
 
-@AndroidEntryPoint   // <-- ESTO ES LO QUE CAMBIA AQUÍ
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val tripListViewModel: TripListViewModel by viewModels()
@@ -78,6 +78,10 @@ class MainActivity : ComponentActivity() {
                             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
                             LaunchedEffect(uid) {
                                 tripListViewModel.setCurrentUser(uid)
+                                // FIX: recargar perfil del usuario actual al entrar en home.
+                                // Esto garantiza que el nombre mostrado en el botón de perfil
+                                // se actualice siempre que cambie el usuario autenticado.
+                                settingsViewModel.loadUserProfile()
                             }
                             HomeScreen(
                                 viewModel = tripListViewModel,
@@ -126,10 +130,10 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onNavigateToRegister = {
-                                    navController.navigate("register")   // AÑADIR ESTA LÍNEA
+                                    navController.navigate("register")
                                 },
                                 onNavigateToForgotPassword = {
-                                    navController.navigate("forgot_password")   // AÑADIR ESTA LÍNEA
+                                    navController.navigate("forgot_password")
                                 }
                             )
                         }
@@ -238,7 +242,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-// AÑADIR ESTA RUTA nueva:
                         composable("forgot_password") {
                             ForgotPasswordScreen(
                                 viewModel = authViewModel,

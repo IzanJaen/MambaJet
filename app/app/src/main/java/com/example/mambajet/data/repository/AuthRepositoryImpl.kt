@@ -21,30 +21,30 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
         return auth.currentUser?.isEmailVerified == true
     }
 
-    override fun login(email: String, password: String, onComplete: (Boolean, String?) -> Unit) {
+    override fun login(email: String, password: String, onComplete: (Boolean, String?, Exception?) -> Unit) {
         Log.d(TAG, "Intentando login: $email")
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d(TAG, "Login exitoso para: $email")
-                    onComplete(true, null)
+                    onComplete(true, null, null)
                 } else {
                     Log.e(TAG, "Error login: ${task.exception?.message}")
-                    onComplete(false, task.exception?.message ?: "Error desconocido")
+                    onComplete(false, task.exception?.message ?: "Error desconocido", task.exception)
                 }
             }
     }
 
-    override fun register(email: String, password: String, onComplete: (Boolean, String?) -> Unit) {
+    override fun register(email: String, password: String, onComplete: (Boolean, String?, Exception?) -> Unit) {
         Log.d(TAG, "Intentando registro: $email")
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d(TAG, "Registro exitoso para: $email")
-                    onComplete(true, null)
+                    onComplete(true, null, null)
                 } else {
                     Log.e(TAG, "Error registro: ${task.exception?.message}")
-                    onComplete(false, task.exception?.message ?: "Error desconocido")
+                    onComplete(false, task.exception?.message ?: "Error desconocido", task.exception)
                 }
             }
     }

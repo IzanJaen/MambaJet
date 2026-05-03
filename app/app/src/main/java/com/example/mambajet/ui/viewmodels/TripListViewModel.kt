@@ -6,9 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.mambajet.domain.Trip
 import com.example.mambajet.domain.TripRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -40,36 +43,55 @@ class TripListViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
+    /**
+     * T5.2 — Canal de eventos de error para notificar a la UI cuando hay un nombre duplicado
+     * u otro error de validación del repositorio.
+     */
+    private val _errorEvent = MutableSharedFlow<String>()
+    val errorEvent: SharedFlow<String> = _errorEvent.asSharedFlow()
+
     fun setCurrentUser(userId: String) {
         Log.d(TAG, "Usuario activo cambiado a: $userId")
         _currentUserId.value = userId
     }
 
-    fun addTrip(trip: Trip): Boolean {
+    fun addTrip(trip: Trip) {
         Log.d(TAG, "Intentando añadir viaje: ${trip.title}")
         if (!isValidTrip(trip)) {
             Log.e(TAG, "Validación fallida para: ${trip.title}")
-            return false
+            viewModelScope.launch { _errorEvent.emit("Datos del viaje inválidos. Revisa los campos.") }
+            return
         }
         // Asigna el userId actual al viaje
         val tripWithUser = trip.copy(userId = _currentUserId.value)
         viewModelScope.launch {
-            repository.addTrip(tripWithUser)
-            Log.d(TAG, "Viaje guardado en DB: ${tripWithUser.title} para user: ${tripWithUser.userId}")
+            try {
+                repository.addTrip(tripWithUser)
+                Log.d(TAG, "Viaje guardado en DB: ${tripWithUser.title} para user: ${tripWithUser.userId}")
+            } catch (e: IllegalArgumentException) {
+                // T5.2 — Nombre duplicado detectado por el repositorio
+                Log.w(TAG, "Error al añadir viaje: ${e.message}")
+                _errorEvent.emit(e.message ?: "Error al guardar el viaje.")
+            }
         }
-        return true
     }
 
-    fun editTrip(trip: Trip): Boolean {
+    fun editTrip(trip: Trip) {
         Log.d(TAG, "Intentando editar viaje: ${trip.title}")
         if (!isValidTrip(trip)) {
             Log.e(TAG, "Validación fallida al editar: ${trip.title}")
-            return false
+            viewModelScope.launch { _errorEvent.emit("Datos del viaje inválidos. Revisa los campos.") }
+            return
         }
         viewModelScope.launch {
-            repository.editTrip(trip)
+            try {
+                repository.editTrip(trip)
+                Log.d(TAG, "Viaje actualizado: ${trip.title}")
+            } catch (e: IllegalArgumentException) {
+                Log.w(TAG, "Error al editar viaje: ${e.message}")
+                _errorEvent.emit(e.message ?: "Error al actualizar el viaje.")
+            }
         }
-        return true
     }
 
     fun deleteTrip(tripId: String) {

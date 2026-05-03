@@ -62,9 +62,7 @@ fun LoginScreen(
             value = email,
             onValueChange = { email = it },
             label = { Text(stringResource(id = R.string.login_email_label)) },
-            leadingIcon = {
-                Icon(imageVector = Icons.Default.Email, contentDescription = null)
-            },
+            leadingIcon = { Icon(imageVector = Icons.Default.Email, contentDescription = null) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             singleLine = true
@@ -76,16 +74,13 @@ fun LoginScreen(
             value = password,
             onValueChange = { password = it },
             label = { Text(stringResource(id = R.string.login_password_label)) },
-            leadingIcon = {
-                Icon(imageVector = Icons.Default.Lock, contentDescription = null)
-            },
+            leadingIcon = { Icon(imageVector = Icons.Default.Lock, contentDescription = null) },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             singleLine = true
         )
 
-        // Enlace "¿Olvidaste tu contraseña?"
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
             TextButton(onClick = onNavigateToForgotPassword) {
                 Text(
@@ -98,9 +93,10 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // El error se resuelve como string localizado usando el ResId
         if (authState is AuthState.Error) {
             Text(
-                text = (authState as AuthState.Error).message,
+                text = stringResource(id = (authState as AuthState.Error).messageResId),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall
             )

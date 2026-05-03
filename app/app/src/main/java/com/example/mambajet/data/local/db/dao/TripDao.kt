@@ -18,6 +18,18 @@ interface TripDao {
     @Query("SELECT * FROM trips WHERE id = :tripId LIMIT 1")
     suspend fun getTripById(tripId: String): TripEntity?
 
+    /**
+     * T5.2 — Cuenta viajes del mismo usuario con el mismo título (case-insensitive),
+     * opcionalmente excluyendo un ID (para el caso de edición).
+     */
+    @Query(
+        "SELECT COUNT(*) FROM trips " +
+                "WHERE userId = :userId " +
+                "AND LOWER(TRIM(title)) = LOWER(TRIM(:title)) " +
+                "AND (:excludeId IS NULL OR id != :excludeId)"
+    )
+    suspend fun countByTitleAndUser(title: String, userId: String, excludeId: String?): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTrip(trip: TripEntity)
 

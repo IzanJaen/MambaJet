@@ -87,23 +87,18 @@
     <string name="terms_2_body">Your travel data is saved locally for your privacy...</string>
     <string name="terms_3_title">3. AI Recommendations</string>
     <string name="terms_3_body">MambaJet is not responsible for the accuracy of the AI...</string>
-
     <string name="about_us_uppercase">ABOUT US</string>
     <string name="dev_team">MambaJet Dev Team</string>
     <string name="version_text">Version 2.1.0 (InMemory Storage)</string>
     <string name="about_us_desc">MambaJet was born from the need to simplify group travel planning, integrating smart recommendations and intuitive budget tracking. Developed with passion using Jetpack Compose.</string>
-
     <string name="optimization_for">Optimization for %1$s</string>
     <string name="ask_suggestions">Ask for suggestions or analyze your remaining budget.</string>
     <string name="ai_example_result">Ichiran Ramen in Shibuya. Estimated cost: €12. Fits perfectly into your daily budget of €45.</string>
-
     <string name="radar_title">RADAR: %1$s</string>
     <string name="radar_module">Radar Module</string>
-
     <string name="mission_captures">Mission Captures</string>
     <string name="captures_count">%1$d CAPTURES</string>
     <string name="select_trip">Select a trip</string>
-
     <string name="login_welcome_title">Welcome to MambaJet</string>
     <string name="login_subtitle">Sign in to continue</string>
     <string name="login_email_label">Email Address</string>
@@ -122,7 +117,7 @@
     <string name="register_success_title">Registration successful!</string>
     <string name="register_success_msg">We have sent you a verification email. Please check your inbox and confirm your account before signing in.</string>
     <string name="register_success_ok">GOT IT</string>
-
+    <string name="register_username_label">Username</string>
     <!-- Forgot Password -->
     <string name="login_forgot_password">Forgot your password?</string>
     <string name="forgot_title">Recover Password</string>
@@ -131,4 +126,15 @@
     <string name="forgot_back_to_login">Back to sign in</string>
     <string name="forgot_success_title">Email sent</string>
     <string name="forgot_success_msg">Check your inbox. If the email exists in our system, you will receive a link to reset your password.</string>
+    <!-- Auth errors -->
+    <string name="error_fields_empty">Fields cannot be empty.</string>
+    <string name="error_wrong_credentials">Incorrect email or password.</string>
+    <string name="error_user_not_found">No account found with this email.</string>
+    <string name="error_email_in_use">This email is already registered.</string>
+    <string name="error_weak_password">Password must be at least 6 characters.</string>
+    <string name="error_passwords_no_match">Passwords do not match.</string>
+    <string name="error_invalid_email">Invalid email format.</string>
+    <string name="error_username_taken">This username is already taken.</string>
+    <string name="error_email_empty">Please enter your email address.</string>
+    <string name="error_generic">An error occurred. Please try again.</string>
 </resources>

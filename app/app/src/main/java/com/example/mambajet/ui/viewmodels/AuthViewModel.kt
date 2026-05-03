@@ -3,11 +3,16 @@ package com.example.mambajet.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mambajet.R
 import com.example.mambajet.domain.AccessLogRepository
 import com.example.mambajet.domain.AuthRepository
 import com.example.mambajet.domain.UserProfile
 import com.example.mambajet.domain.UserRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,14 +23,15 @@ sealed class AuthState {
     object Idle : AuthState()
     object Loading : AuthState()
     object Success : AuthState()
-    data class Error(val message: String) : AuthState()
+    // En lugar de String con el mensaje directo, guardamos el ResId para que la UI lo resuelva
+    data class Error(val messageResId: Int, val fallbackMessage: String = "") : AuthState()
 }
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val repository: AuthRepository,
-    private val userRepository: UserRepository,       // T4.1
-    private val accessLogRepository: AccessLogRepository // T4.4
+    private val userRepository: UserRepository,
+    private val accessLogRepository: AccessLogRepository
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
@@ -44,16 +50,15 @@ class AuthViewModel @Inject constructor(
     // ── LOGIN ──────────────────────────────────────────────────────────────────
     fun login(email: String, pass: String) {
         if (email.isBlank() || pass.isBlank()) {
-            _authState.value = AuthState.Error("Los campos no pueden estar vacíos")
+            _authState.value = AuthState.Error(R.string.error_fields_empty)
             return
         }
         _authState.value = AuthState.Loading
         Log.d("AuthViewModel", "Intentando login: $email")
-        repository.login(email, pass) { isSuccess, errorMessage ->
+        repository.login(email, pass) { isSuccess, errorMessage, exception ->
             if (isSuccess) {
                 Log.d("AuthViewModel", "Login exitoso")
                 val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@login
-                // T4.4 — Persistir evento LOGIN
                 viewModelScope.launch {
                     accessLogRepository.logLogin(uid)
                     Log.d("AuthViewModel", "Evento LOGIN registrado para uid: $uid")
@@ -61,64 +66,58 @@ class AuthViewModel @Inject constructor(
                 _authState.value = AuthState.Success
             } else {
                 Log.e("AuthViewModel", "Error login: $errorMessage")
-                _authState.value = AuthState.Error(errorMessage ?: "Error desconocido")
+                _authState.value = AuthState.Error(mapFirebaseLoginError(exception))
             }
         }
     }
 
     // ── REGISTER ───────────────────────────────────────────────────────────────
-    /**
-     * T4.1 — Registro con persistencia de usuario en DB local.
-     * Recibe todos los campos del perfil y verifica que el username no esté en uso.
-     */
     fun register(
         email: String,
         password: String,
         confirmPassword: String,
         username: String,
-        birthdate: Long,
-        address: String,
-        country: String,
-        phone: String,
-        acceptEmails: Boolean
+        birthdate: Long = 0L,
+        address: String = "",
+        country: String = "",
+        phone: String = "",
+        acceptEmails: Boolean = false
     ) {
         if (email.isBlank() || password.isBlank() || confirmPassword.isBlank() || username.isBlank()) {
-            _registerState.value = AuthState.Error("Todos los campos son obligatorios")
+            _registerState.value = AuthState.Error(R.string.error_fields_empty)
             return
         }
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _registerState.value = AuthState.Error("El correo no tiene formato válido")
+            _registerState.value = AuthState.Error(R.string.error_invalid_email)
             return
         }
         if (password.length < 6) {
-            _registerState.value = AuthState.Error("La contraseña debe tener mínimo 6 caracteres")
+            _registerState.value = AuthState.Error(R.string.error_weak_password)
             return
         }
         if (password != confirmPassword) {
-            _registerState.value = AuthState.Error("Las contraseñas no coinciden")
+            _registerState.value = AuthState.Error(R.string.error_passwords_no_match)
             return
         }
 
         _registerState.value = AuthState.Loading
 
-        // T4.1 — Verificar username único antes de registrar en Firebase
         viewModelScope.launch {
             val taken = userRepository.isUsernameTaken(username)
             if (taken) {
                 Log.w("AuthViewModel", "Username '$username' ya en uso")
-                _registerState.value = AuthState.Error("El nombre de usuario ya está en uso")
+                _registerState.value = AuthState.Error(R.string.error_username_taken)
                 return@launch
             }
 
             Log.d("AuthViewModel", "Intentando registro: $email")
-            repository.register(email, password) { isSuccess, errorMessage ->
+            repository.register(email, password) { isSuccess, errorMessage, exception ->
                 if (isSuccess) {
                     repository.sendEmailVerification { sent, _ ->
                         if (sent) Log.d("AuthViewModel", "Email de verificación enviado")
                         else Log.w("AuthViewModel", "No se pudo enviar verificación")
                     }
                     val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@register
-                    // T4.1 — Guardar perfil de usuario en DB local
                     viewModelScope.launch {
                         val userProfile = UserProfile(
                             id = uid,
@@ -132,14 +131,13 @@ class AuthViewModel @Inject constructor(
                         )
                         userRepository.saveUser(userProfile)
                         Log.d("AuthViewModel", "Perfil de usuario guardado en DB local: $uid")
-                        // T4.4 — Primer acceso como LOGIN
                         accessLogRepository.logLogin(uid)
                     }
                     Log.d("AuthViewModel", "Registro exitoso")
                     _registerState.value = AuthState.Success
                 } else {
                     Log.e("AuthViewModel", "Error registro: $errorMessage")
-                    _registerState.value = AuthState.Error(errorMessage ?: "Error desconocido")
+                    _registerState.value = AuthState.Error(mapFirebaseRegisterError(exception))
                 }
             }
         }
@@ -148,11 +146,11 @@ class AuthViewModel @Inject constructor(
     // ── RECOVER PASSWORD ───────────────────────────────────────────────────────
     fun sendPasswordReset(email: String) {
         if (email.isBlank()) {
-            _resetState.value = AuthState.Error("Introduce tu correo electrónico")
+            _resetState.value = AuthState.Error(R.string.error_email_empty)
             return
         }
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _resetState.value = AuthState.Error("El correo no tiene formato válido")
+            _resetState.value = AuthState.Error(R.string.error_invalid_email)
             return
         }
         _resetState.value = AuthState.Loading
@@ -163,7 +161,7 @@ class AuthViewModel @Inject constructor(
                 _resetState.value = AuthState.Success
             } else {
                 Log.e("AuthViewModel", "Error reset: $errorMessage")
-                _resetState.value = AuthState.Error(errorMessage ?: "Error desconocido")
+                _resetState.value = AuthState.Error(R.string.error_generic)
             }
         }
     }
@@ -172,7 +170,6 @@ class AuthViewModel @Inject constructor(
     fun logout() {
         val uid = FirebaseAuth.getInstance().currentUser?.uid
         Log.d("AuthViewModel", "Usuario cerrando sesión: $uid")
-        // T4.4 — Persistir evento LOGOUT antes de cerrar sesión
         if (uid != null) {
             viewModelScope.launch {
                 accessLogRepository.logLogout(uid)
@@ -186,4 +183,22 @@ class AuthViewModel @Inject constructor(
     fun resetState() { _authState.value = AuthState.Idle }
     fun resetRegisterState() { _registerState.value = AuthState.Idle }
     fun resetPasswordResetState() { _resetState.value = AuthState.Idle }
+
+    // ── ERROR MAPPERS ──────────────────────────────────────────────────────────
+    private fun mapFirebaseLoginError(exception: Exception?): Int {
+        return when (exception) {
+            is FirebaseAuthInvalidCredentialsException -> R.string.error_wrong_credentials
+            is FirebaseAuthInvalidUserException -> R.string.error_user_not_found
+            else -> R.string.error_generic
+        }
+    }
+
+    private fun mapFirebaseRegisterError(exception: Exception?): Int {
+        return when (exception) {
+            is FirebaseAuthUserCollisionException -> R.string.error_email_in_use
+            is FirebaseAuthWeakPasswordException -> R.string.error_weak_password
+            is FirebaseAuthInvalidCredentialsException -> R.string.error_invalid_email
+            else -> R.string.error_generic
+        }
+    }
 }

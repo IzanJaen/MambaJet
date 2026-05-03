@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,13 +33,7 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
-    var birthdate by remember { mutableStateOf(0L) }
-    var address by remember { mutableStateOf("") }
-    var country by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var acceptEmails by remember { mutableStateOf(false) }
 
-    // Diálogo de éxito: le decimos que revise el email
     var showSuccessDialog by remember { mutableStateOf(false) }
 
     val registerState by viewModel.registerState.collectAsState()
@@ -50,7 +45,6 @@ fun RegisterScreen(
         }
     }
 
-    // Diálogo de confirmación de verificación por email
     if (showSuccessDialog) {
         AlertDialog(
             onDismissRequest = { },
@@ -103,9 +97,7 @@ fun RegisterScreen(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text(stringResource(id = R.string.login_email_label)) },
-                leadingIcon = {
-                    Icon(imageVector = Icons.Default.Email, contentDescription = null)
-                },
+                leadingIcon = { Icon(imageVector = Icons.Default.Email, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
@@ -117,9 +109,7 @@ fun RegisterScreen(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text(stringResource(id = R.string.login_password_label)) },
-                leadingIcon = {
-                    Icon(imageVector = Icons.Default.Lock, contentDescription = null)
-                },
+                leadingIcon = { Icon(imageVector = Icons.Default.Lock, contentDescription = null) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -133,90 +123,30 @@ fun RegisterScreen(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
                 label = { Text(stringResource(id = R.string.register_confirm_password)) },
-                leadingIcon = {
-                    Icon(imageVector = Icons.Default.Lock, contentDescription = null)
-                },
+                leadingIcon = { Icon(imageVector = Icons.Default.Lock, contentDescription = null) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
             )
 
-            // Username
             Spacer(modifier = Modifier.height(16.dp))
+
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
-                label = { Text("Nombre de usuario") },
+                label = { Text(stringResource(id = R.string.register_username_label)) },
+                leadingIcon = { Icon(imageVector = Icons.Default.Person, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
             )
-
-// Fecha de nacimiento (puedes usar un simple campo de texto o un DatePicker)
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = if (birthdate == 0L) "" else java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(java.util.Date(birthdate)),
-                onValueChange = { /* gestiona con DatePicker */ },
-                label = { Text("Fecha de nacimiento") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true,
-                readOnly = true
-            )
-
-// Dirección
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = address,
-                onValueChange = { address = it },
-                label = { Text("Dirección") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true
-            )
-
-// País
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = country,
-                onValueChange = { country = it },
-                label = { Text("País") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true
-            )
-
-// Teléfono
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = phone,
-                onValueChange = { phone = it },
-                label = { Text("Teléfono") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true
-            )
-
-// Aceptar emails
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Checkbox(
-                    checked = acceptEmails,
-                    onCheckedChange = { acceptEmails = it }
-                )
-                Text("Aceptar recibir correos promocionales")
-            }
-
 
             Spacer(modifier = Modifier.height(24.dp))
 
             if (registerState is AuthState.Error) {
                 Text(
-                    text = (registerState as AuthState.Error).message,
+                    text = stringResource(id = (registerState as AuthState.Error).messageResId),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center
@@ -230,12 +160,7 @@ fun RegisterScreen(
                         email = email,
                         password = password,
                         confirmPassword = confirmPassword,
-                        username = username,
-                        birthdate = birthdate,
-                        address = address,
-                        country = country,
-                        phone = phone,
-                        acceptEmails = acceptEmails
+                        username = username
                     )
                 },
                 modifier = Modifier
